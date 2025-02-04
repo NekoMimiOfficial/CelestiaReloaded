@@ -3,7 +3,6 @@ from discord.ext import commands
 
 import asyncio
 import os
-from subprocess import getoutput
 
 from NekoMimi import utils as nm
 from NekoMimi import reg
@@ -19,9 +18,6 @@ bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all())
 #startup tasks
 print(f"Starting up Celestia Reloaded")
 print(f"Token: {token}")
-getoutput("rm -rf Uptime/")
-getoutput("mkdir Uptime/")
-print("Cleaned up uptime data...")
 
 @bot.event
 async def on_ready():
@@ -33,6 +29,7 @@ async def on_ready():
         print(e)
         exit(22)
 
+# These 2 commands have always and will always be part of the main script
 @bot.tree.command(name= "neko", description= "Returns a random Neko image from nekos.life API")
 async def __CMD_nekonoko(ctx: discord.Interaction):
 	embed= discord.Embed(color= 0xee90ac)
