@@ -1,4 +1,5 @@
 discord.py
+discord.py[voice]
 nekos.py
 jishaku
 NekoMimi
