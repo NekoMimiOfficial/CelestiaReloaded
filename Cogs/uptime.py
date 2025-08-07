@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from discord import app_commands
 from discord.ext import commands
 
@@ -27,6 +28,8 @@ class modal_interface(discord.ui.Modal, title= "Site Address"):
 
         await interaction.response.send_message("[uptime] running uptime", ephemeral= True);
         main_counter_interface= await interaction.channel.send(embed= embed_interfact);
+        await asyncio.sleep(1)
+        await main_counter_interface.edit(content= "hello")
 
 class UptimeCog(commands.Cog):
     def __init__(self, bot: commands.Bot)-> None:
