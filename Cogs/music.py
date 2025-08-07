@@ -29,7 +29,12 @@ class MusicCog(commands.Cog):
                 continue
         print(url)
         if interaction.user.voice:
-            await interaction.response.send_message(f"Playing **{tapi['title']}**!")
+            em0= discord.Embed(color= 0xEE90AC, title= f"Playing: {tapi['title']}")
+            em0.set_footer(text= "Powered by Nekoir", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
+            em0.add_field(name= "Duration", value= tapi["duration"], inline= True)
+            em0.add_field(name= "Track ID", value= tapi["id"], inline= True)
+            em0.set_thumbnail(url= tapi["cover"])
+            await interaction.response.send_message(embed= em0)
             vc= interaction.user.voice.channel
             player= await vc.connect()
             player.play(discord.FFmpegPCMAudio(source= url))
