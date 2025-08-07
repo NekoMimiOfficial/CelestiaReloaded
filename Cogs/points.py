@@ -6,7 +6,7 @@ from NekoMimi import reg
 TIME= 10
 
 def lvl(p: int):
-    return int(p/128) - int(p/256) - int(p/512) - int (p/1024)
+    return int(p/128) - int(p/256) - int(p/512) - int (p/1024) - int (p/2048) - int (p/4096) - int (p/8192)
 
 def check(uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
