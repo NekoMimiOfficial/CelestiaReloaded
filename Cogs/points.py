@@ -27,20 +27,27 @@ def user_xp(ts, uid, gid):
     xp= int(xp)
     tso= int(tso)
     ts= int(ts)
+    removes= 0
     if (ts - tso) > TIME:
         db.store(str(uid), f"{xp+1}:{ts}")
     lb= db.query("lb").split(";")
     del lb[-1]
     for spot in lb:
-        if int(uid) == int(spot.split(":")[1]):
-            for j in range(len(lb)):
-                if lb[j].startswith("0"):
-                    del lb[j]
+        if str(uid) == spot.split(":")[1]:
+            for z in range(4):
+                i= 0
+                for spotz in lb:
+                    if spotz.startswith("0"):
+                        del lb[i]
+                        removes= removes+1
+                    i= i+1
     i= 0
     for spot in lb:
         if xp > int(spot.split(":")[0]):
             lb[i]= f"{xp}:{uid}"
             lbs= ""
+            for z in range(removes):
+                lb.append("0:0")
             for entry in lb:
                 lbs = lbs + entry + ";"
                 db.store("lb", lbs)
