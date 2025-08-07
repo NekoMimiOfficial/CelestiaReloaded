@@ -34,7 +34,7 @@ class Owner(commands.Cog):
 
     @commands.command(name= "gitPull")
     @commands.is_owner()
-    async def git_pull(self, ctx, *, msg):
+    async def git_pull(self, ctx):
         b= subprocess.getoutput(f"bash -c git pull origin master")
         emO = f"```\n{b}\n```"
         embed = discord.Embed(color=0xEE90AC,title='Syncing with git remote',description=emO)
