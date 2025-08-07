@@ -24,7 +24,7 @@ class Owner(commands.Cog):
                 embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
                 await message.channel.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name= "gitPush")
     @commands.is_owner()
     async def git_push(self, ctx, *, msg):
         b= subprocess.getoutput(f"bash -c git add . && git commit -m '{msg}' && git push origin master")
@@ -32,7 +32,7 @@ class Owner(commands.Cog):
         embed = discord.Embed(color=0xEE90AC,title='Syncing with git remote',description=emO)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name= "gitPull")
     @commands.is_owner()
     async def git_pull(self, ctx, *, msg):
         b= subprocess.getoutput(f"bash -c git pull origin master")
