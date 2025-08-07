@@ -65,6 +65,21 @@ class ToolCog(commands.Cog):
         embed.set_footer(text= f'Want a fun fact? "{fact}"', icon_url= "http://nekomimi.tilde.team/Celestia/assets/__EMBED_fact.png")
         await interaction.user.send(embed= embed)
 
+    @app_commands.command(name= "neko", description= "Returns a random Neko image from nekos.life API")
+    async def __CMD_nekonoko(self, ctx: discord.Interaction):
+        embed= discord.Embed(color= 0xee90ac)
+        embed.set_image(url= nekos.img(target= "neko"))
+        embed.set_footer(text= "Powered by nekos.life")
+        await ctx.response.send_message(embed= embed)
+
+    @app_commands.command(name= "kitsune", description= "Returns a random Kitsune image from nekos.life API")
+    async def __CMD_kitsune(self, ctx: discord.Interaction):
+        embed= discord.Embed(color= 0xee90ac)
+        embed.set_image(url=nekos.img(target= "fox_girl"))
+        embed.set_footer(text= "Powered by nekos.life")
+        await ctx.response.send_message(embed= embed)
+
+
 ##############################################
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ToolCog(bot))

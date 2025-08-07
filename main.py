@@ -29,20 +29,6 @@ async def on_ready():
         print(e)
         exit(22)
 
-# These 2 commands have always and will always be part of the main script
-@discord.app_commands.command(name= "neko", description= "Returns a random Neko image from nekos.life API")
-async def __CMD_nekonoko(ctx: discord.Interaction):
-	embed= discord.Embed(color= 0xee90ac)
-	embed.set_image(url= nekos.img(target= "neko"))
-	embed.set_footer(text= "Powered by nekos.life")
-	await ctx.response.send_message(embed= embed)
-
-@discord.app_commands.command(name= "kitsune", description= "Returns a random Kitsune image from nekos.life API")
-async def __CMD_kitsune(ctx: discord.Interaction):
-	embed= discord.Embed(color= 0xee90ac)
-	embed.set_image(url=nekos.img(target= "fox_girl"))
-	embed.set_footer(text= "Powered by nekos.life")
-	await ctx.response.send_message(embed= embed)
 
 #import cogs
 async def load():
