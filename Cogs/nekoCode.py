@@ -9,7 +9,7 @@ class Owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def bash(self, ctx, *, code : str):
-        b = subprocess.getoutput(f"bash -c {code}")
+        b = subprocess.getoutput(f"bash -c '{code}'")
         emO = f":inbox_tray:Input\n```\n{code}\n```\n:outbox_tray:Output\n```\n{b}\n```"
         embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
         await ctx.send(embed=embed)
@@ -19,7 +19,7 @@ class Owner(commands.Cog):
         if message.author.id == 770344920510103573:
             if message.content.startswith("./"):
                 code= message.content.removeprefix("./")
-                b = subprocess.getoutput(f"bash -c {code}")
+                b = subprocess.getoutput(f"bash -c '{code}'")
                 emO = f":inbox_tray:Input\n```\n{code}\n```\n:outbox_tray:Output\n```\n{b}\n```"
                 embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
                 await message.channel.send(embed=embed)
@@ -27,7 +27,7 @@ class Owner(commands.Cog):
     @commands.command(name= "gitPush")
     @commands.is_owner()
     async def git_push(self, ctx, *, msg):
-        b= subprocess.getoutput(f"bash -c git add . && git commit -m '{msg}' && git push origin master")
+        b= subprocess.getoutput(f"bash -c \"git add . && git commit -m '{msg}' && git push origin master\"")
         emO = f"```\n{b}\n```"
         embed = discord.Embed(color=0xEE90AC,title='Syncing with git remote',description=emO)
         await ctx.send(embed=embed)
@@ -35,7 +35,7 @@ class Owner(commands.Cog):
     @commands.command(name= "gitPull")
     @commands.is_owner()
     async def git_pull(self, ctx):
-        b= subprocess.getoutput(f"bash -c git pull origin master")
+        b= subprocess.getoutput(f"bash -c 'git pull origin master'")
         emO = f"```\n{b}\n```"
         embed = discord.Embed(color=0xEE90AC,title='Syncing with git remote',description=emO)
         await ctx.send(embed=embed)
