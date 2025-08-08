@@ -35,7 +35,7 @@ async def load():
     for file in os.listdir("./Cogs"):
         if file.endswith(".py"):
             await bot.load_extension(f"Cogs.{file[:-3]}")
-            # await bot.load_extension("jishaku")
+    await bot.load_extension("jishaku")
 
 async def startup():
     await load()

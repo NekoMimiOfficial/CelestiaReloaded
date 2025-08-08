@@ -8,14 +8,19 @@ following her big impact on my life it was only appropriate to revive her and ma
 `git clone https://github.com/NekoMimiOfficial/CelestiaReloaded.git`  
 - install dependencies:  
 `pip3 install -r requirements.txt`  
+> [!NOTE]
+> If you get any issues regarding connecting to voice channels then install the latest discord.py version straight from github  
 - add bot key:  
 `python3 -m NekoMimi`  
 `nreg w celestia BOT_TOKEN`  
+- add nekoir key:  
+`python3 -m NekoMimi`  
+`nreg w nekoir API_URL`  
 - run main:  
 `python3 main.py`  
 
 # The One and Only Celestia  
-The original bot can be found at this [link](https://discord.com/oauth2/authorize?client_id=795085068552896564)  
+The original bot can be found at this [link](https://discord.com/oauth2/authorize?client_id=795085068552896564&permissions=8&integration_type=0&scope=applications.commands+bot)  
 
 # The One and Only Neko :3  
 Hmm? me?  
