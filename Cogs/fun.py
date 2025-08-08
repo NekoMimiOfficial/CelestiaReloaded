@@ -68,7 +68,6 @@ class Fun_Commands(commands.Cog):
 
         slotmachine = f"**[ {a} {b} {c} ]\n{interaction.user.display_name}**,"
         points = getScr(str(interaction.user.id), str(interaction.guild_id))
-        print(points)
         if points > 4:
             if (a == b == c):
                 await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
