@@ -41,33 +41,30 @@ def user_xp(ts, uid, gid):
         db.store(str(uid), f"{xp+1}:{ts}")
     lb= db.query("lb").split(";")
     del lb[-1]
+
+    isOnLb= False
     for spot in lb:
-        if str(uid) == spot.split(":")[1]:
-            for z in range(4):
-                i= 0
-                for spotz in lb:
-                    if spotz.startswith("0"):
-                        del lb[i]
-                        removes= removes+1
-                    i= i+1
+        if spot.split(":")[1] == str(uid):
+            isOnLb= True
+
+    if isOnLb:
+        i= 0
+        for spot in lb:
+            if spot.split(":")[1] == str(uid):
+                del lb[i]
+            i= i+1
+        lb.append("0:0")
+
     i= 0
     for spot in lb:
-        if xp > int(spot.split(":")[0]):
-            lb[i]= f"{xp}:{uid}"
+        if int(spot.split(":")[0]) < xp:
+            lb[i] = f"{xp}:{uid}"
             lbs= ""
-            for z in range(removes):
-                lb.append("0:0")
             for entry in lb:
-                lbs = lbs + entry + ";"
-                db.store("lb", lbs)
-            break
-        i= i+1
-    
-    i= 0
-    for spot in lb:
-        if spot == "0:0":
-            del lb[i]
-        i= i+1
+                lbs= lbs+ f"{entry};"
+            db.store("lb", lbs)
+            return lb
+
     return lb
 
 class PointsCog(commands.Cog):
