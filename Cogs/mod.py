@@ -13,6 +13,7 @@ class ModCog(commands.Cog):
     @app_commands.checks.has_permissions(manage_messages= True)
     async def __cmd_purge(self, interaction: discord.Interaction, count: int= 5):
         i= count
+        await interaction.response.send_message("Done.", ephemeral= True)
         while i > 0:
             if i < 50:
                 await interaction.channel.purge(limit= count)
@@ -20,7 +21,6 @@ class ModCog(commands.Cog):
             else:
                 await interaction.channel.purge(limit= 50)
             i = i - 50
-        await interaction.response.send_message("Done.", ephemeral= True)
 
     @app_commands.command(name= "user", description= "User information")
     @app_commands.describe(user= "User to perform operation on")

@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os.path
 
 class logger(commands.Cog):
@@ -59,26 +60,25 @@ class logger(commands.Cog):
             return "Erm .. this server isn't enrolled in the modlog database"
 
 
-    @commands.command()
-    @commands.guild_only()
-    async def modlogsetup(self,ctx,chnl:discord.TextChannel):
-        channel = chnl.id
-        guild = ctx.guild.id
-        if ctx.author == ctx.guild.owner:
-            self.create_log_channel(guild,channel)
-            await ctx.send(f"Bound logs to channel `{chnl.name}` !",delete_after=8)
-        else:
-            await ctx.send(f"Sorry ... only the Guild Owner can run this command")
+    logging= app_commands.Group(name= "logging", description= "Mod log tools")
 
-    @commands.command()
+    @logging.command(name= "setup", description= "setup the modlog")
+    @app_commands.describe(chnl= "Channel to bind the logs to")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator= True)
+    async def modlogsetup(self, interaction: discord.Interaction, chnl:discord.TextChannel):
+        channel = chnl.id
+        guild = interaction.guild_id
+        self.create_log_channel(guild,channel)
+        await interaction.response.send_message(f"Bound logs to channel `{chnl.name}` !")
+
+    @logging.command(name= "disable", description= "disable the modlog")
     @commands.guild_only()
-    async def removemodlog(self,ctx):
-        if ctx.author.id == ctx.guild.owner.id:
-            guild = ctx.guild.id
-            work = self.rm_log_channel(guild)
-            await ctx.send(work,delete_after=8)
-        else:
-            await ctx.send("Sorry ... only the Guild Owner can run this command")
+    @app_commands.checks.has_permissions(administrator= True)
+    async def removemodlog(self, interaction: discord.Interaction):
+        guild = interaction.guild_id
+        work = self.rm_log_channel(guild)
+        await interaction.response.send_message(work)
 
     @commands.Cog.listener()
     async def on_message_delete(self,message):
