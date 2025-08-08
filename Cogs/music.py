@@ -43,22 +43,18 @@ class MusicCog(commands.Cog):
                 return
             dprint("passed check", interaction)
             em0= discord.Embed(color= 0xEE90AC, title= f"Playing: {tapi['title']}")
-            dprint("embed init", interaction)
             em0.set_footer(text= "Powered by Nekoir", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
-            dprint("embed footer", interaction)
             em0.add_field(name= "Duration", value= tapi["duration"], inline= True)
-            dprint("embed dur", interaction)
             em0.add_field(name= "Track ID", value= tapi["id"], inline= True)
-            dprint("embed tid", interaction)
             em0.set_thumbnail(url= tapi["cover"])
-            dprint("embed cov", interaction)
+            dprint("embed created", interaction)
             await interaction.response.send_message(embed= em0)
             dprint("connecting", interaction)
             vc= interaction.user.voice.channel
             player= await vc.connect()
             players[str(interaction.guild_id)]= player
             dprint("playing", interaction)
-            dprint("==========================================", interaction)
+            dprint("=====END=====", interaction)
             player.play(discord.FFmpegPCMAudio(source= url))
             while player.is_playing():
                 await asyncio.sleep(1)
