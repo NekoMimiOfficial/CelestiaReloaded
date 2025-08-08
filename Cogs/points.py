@@ -8,6 +8,15 @@ TIME= 10
 def lvl(p: int):
     return int(p/128) - int(p/256) - int(p/512) - int (p/1024) - int (p/2048) - int (p/4096) - int (p/8192)
 
+def get_point_count(uid, gid):
+    regName= "Celestia-Guilds-"+gid
+    db= reg.Database(regName)
+    q= db.query(uid)
+    r= 0
+    if q == "":
+        return r
+    return int(q.split(":")[0])
+
 def check(uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
     db= reg.Database(dbName)
@@ -64,6 +73,14 @@ def user_xp(ts, uid, gid):
 class PointsCog(commands.Cog):
     def __init__(self, bot):
         self.bot= bot
+
+    @app_commands.command(name= "points", description= "Take a look at your personal standings")
+    @app_commands.guild_only()
+    async def __com_points(self, interaction: discord.Interaction):
+        points= get_point_count(str(interaction.user.id), str(interaction.guild_id))
+        em0= discord.Embed(title= f"Points of {interaction.user.display_name}", colour= 0xEE90AC)
+        em0.add_field(name= "Points", value= f"`{points}` CP")
+        await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
     @app_commands.guild_only()

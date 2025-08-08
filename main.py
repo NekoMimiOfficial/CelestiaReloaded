@@ -12,8 +12,9 @@ import nekos
 print(nm.figlet("Celestia", "larry3d"))
 
 token= reg.readCell("celestia")
+activity= discord.Game(name= "NekoSimulator 9000", platform= "PS5", assets= {'large_url':'https://nekomimi.tilde.team/res/misc/NekoLabs-D.png', 'large_text':'NekoSim9k'})
 prefixes= ['c!', 'C!', 'c ', 'C ', "hey honeypie ", "Hey honeypie ", "hey honeypie, ", "Hey honeypie, "]
-bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all())
+bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all(), activity= activity)
 
 #startup tasks
 print(f"Starting up Celestia Reloaded")

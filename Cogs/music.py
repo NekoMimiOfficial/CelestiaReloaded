@@ -37,7 +37,7 @@ class MusicCog(commands.Cog):
         dprint(url, interaction)
         # dprint(tapi, interaction)
         if interaction.user.voice:
-            dprint("attempting to play", interaction)
+            dprint("attempt play", interaction)
             if str(interaction.guild_id) in players:
                 await interaction.response.send_message("I'm already playing a song in this guild!", ephemeral= True)
                 return
