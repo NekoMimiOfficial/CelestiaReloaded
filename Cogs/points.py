@@ -36,7 +36,6 @@ def user_xp(ts, uid, gid):
     xp= int(xp)
     tso= int(tso)
     ts= int(ts)
-    removes= 0
     if (ts - tso) > TIME:
         db.store(str(uid), f"{xp+1}:{ts}")
     lb= db.query("lb").split(";")
