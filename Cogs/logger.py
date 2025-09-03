@@ -140,11 +140,11 @@ class logger(commands.Cog):
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
         embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
-        embed.add_field(name= "Permissions", value= str(role.permissions), inline= False)
+        embed.add_field(name= "Permissions", value= str(role.permissions.value), inline= False)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_update(self, roleO: discord.Role, roleN):
+    async def on_guild_role_update(self, roleO: discord.Role, roleN: discord.Role):
         if not self.check_log_channel(roleO.guild.id):
             return
         if roleO.name == roleN.name and roleO.color == roleN.color and roleO.permissions == roleN.permissions:
@@ -163,7 +163,7 @@ class logger(commands.Cog):
         embed.add_field(name= "Role name", value= rname, inline= True)
         embed.add_field(name= "Role color", value= rcol, inline= True)
         embed.add_field(name= "Created at", value= roleO.created_at.date(), inline= True)
-        embed.add_field(name= "Permissions", value= str(roleN.permissions), inline= False)
+        embed.add_field(name= "Permissions", value= str(roleN.permissions.value), inline= False)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
@@ -175,7 +175,7 @@ class logger(commands.Cog):
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
         embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
-        embed.add_field(name= "Permissions", value= str(role.permissions), inline= False)
+        embed.add_field(name= "Permissions", value= str(role.permissions.value), inline= False)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
