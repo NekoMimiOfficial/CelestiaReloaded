@@ -17,12 +17,13 @@ def getScr(uid, gid):
     return int(q.split(":")[0])
 
 def writeScr(uid, gid, amt):
-    regName= "Celesia-Guilds-"+gid
+    regName= "Celestia-Guilds-"+gid
     db= reg.Database(regName)
-    q= db.query(uid)
+    q= db.query(str(uid))
     r= int(q.split(":")[0])
+    ts= str(q.split(":")[1])
     r= r+amt
-    db.store(uid, f"{r}:{q.split(':', 1)[1]}")
+    db.store(str(uid), f"{r}:{ts}")
 
 class Fun_Commands(commands.Cog):
     def __init__(self, bot):
@@ -70,14 +71,14 @@ class Fun_Commands(commands.Cog):
         points = getScr(str(interaction.user.id), str(interaction.guild_id))
         if points > 4:
             if (a == b == c):
-                await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
                 writeScr(str(interaction.user.id), str(interaction.guild_id), 100)
+                await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
             elif (a == b) or (a == c) or (b == c):
-                await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` Celestial Points! 🎉")
                 writeScr(str(interaction.user.id), str(interaction.guild_id), 10)
+                await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` Celestial Points! 🎉")
             else:
-                await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` Celestial Points 😢")
                 writeScr(str(interaction.user.id), str(interaction.guild_id), -5)
+                await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` Celestial Points 😢")
         else:
             await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` points, keep talking!"), ephemeral= True)
 
