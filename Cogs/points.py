@@ -66,9 +66,6 @@ def user_xp(ts, uid, gid):
         new_lb= new_lb+ f"{entry['score']},{entry['user_id']}\n"
     db.store("lb", new_lb)
 
-    print(lb)
-    print(new_lb)
-
     return lb[:10]
 
 
