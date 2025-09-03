@@ -1,7 +1,7 @@
 from datetime import date, time
 import discord
 from discord.ext import commands
-from discord import app_commands
+from discord import app_commands, role
 import os.path
 
 class logger(commands.Cog):
@@ -146,6 +146,8 @@ class logger(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_role_update(self, roleO: discord.Role, roleN):
         if not self.check_log_channel(roleO.guild.id):
+            return
+        if roleO.name == roleN.name and roleO.color == roleN.color and roleO.permissions == roleN.permissions:
             return
         logchnl, _= self.get_log_channel(roleO.guild.id)
         if roleO.name == roleN.name:
