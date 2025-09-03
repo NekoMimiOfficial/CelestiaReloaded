@@ -82,9 +82,11 @@ class PointsCog(commands.Cog):
     @app_commands.guild_only()
     async def __com_points(self, interaction: discord.Interaction):
         points= get_point_count(str(interaction.user.id), str(interaction.guild_id))
+        tnl= math.ceil((1.25 ** lvl(points)+1) * 100) - points
         em0= discord.Embed(title= f"Points of {interaction.user.display_name}", colour= 0xEE90AC)
         em0.add_field(name= "Points", value= f"`{points}` <:CelestialPoints:1412891132559495178>", inline= True)
         em0.add_field(name= "Level", value=f"`{lvl(points)}`", inline= True)
+        em0.add_field(name= "Level-up after", value= f"{tnl} <:CelestialPoints:1412891132559495178>")
         await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
