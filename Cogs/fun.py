@@ -71,13 +71,13 @@ class Fun_Commands(commands.Cog):
         if points > 4:
             if (a == b == c):
                 await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
-                writeScr(str(ctx.author.id), str(ctx.guild.id), 200)
+                writeScr(str(interaction.user.id), str(interaction.guild_id), 200)
             elif (a == b) or (a == c) or (b == c):
                 await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` Celestial Points! 🎉")
-                writeScr(str(ctx.author.id), str(ctx.guild.id), 25)
+                writeScr(str(interaction.user.id), str(interaction.guild_id), 25)
             else:
                 await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` Celestial Points 😢")
-                writeScr(str(ctx.author.id), str(ctx.guild.id), -5)
+                writeScr(str(interaction.user.id), str(interaction.guild_id), -5)
         else:
             await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` points, keep talking!"), ephemeral= True)
 

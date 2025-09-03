@@ -96,10 +96,14 @@ class PointsCog(commands.Cog):
                 continue
         lb= lb[:10]
 
-        body= ""
+        body= "**Congrats to the top 3 members!**\n"
         i= 1
         for entry in lb:
-            body= body+ f"[{i}] {interaction.guild.get_member(int(entry['user_id'])).display_name} -> `{int(entry['score'])+1}`CelestialPoints\n"
+            if i == 3:
+                spacer= "\n"
+            else:
+                spacer= ""
+            body= body+ f"[{i}] {interaction.guild.get_member(int(entry['user_id'])).display_name} -> `{int(entry['score'])+1}`CelestialPoints\n{spacer}"
             i+= 1
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
         embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0]["user_id"])).display_avatar)
