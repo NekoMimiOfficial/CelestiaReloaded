@@ -135,7 +135,7 @@ class logger(commands.Cog):
     async def on_guild_role_create(self, role: discord.Role):
         if not self.check_log_channel(role.guild.id):
             return
-        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        logchnl, _= self.get_log_channel(role.guild.id)
         embed= discord.Embed(color= 0xb7bdf8, title= "Role Created")
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
@@ -145,9 +145,9 @@ class logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, roleO: discord.Role, roleN):
-        if not self.check_log_channel(role.guild.id):
+        if not self.check_log_channel(roleO.guild.id):
             return
-        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        logchnl, _= self.get_log_channel(roleO.guild.id)
         if roleO.name == roleN.name:
             rname= roleO.name
         else:
@@ -168,7 +168,7 @@ class logger(commands.Cog):
     async def on_guild_role_delete(self, role: discord.Role):
         if not self.check_log_channel(role.guild.id):
             return
-        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        logchnl, _= self.get_log_channel(role.guild.id)
         embed= discord.Embed(color= 0xc6a0f6, title= "Role Deleted")
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
