@@ -17,7 +17,7 @@ class QueryCog(commands.Cog):
 
     @app_commands.command(name= "invite", description= "Invite Celestia to your own guild!")
     async def __CMD_invite(self, interaction: discord.Interaction):
-        await interaction.response.send_message("[Celestia Reloaded in your service](https://discord.com/oauth2/authorize?client_id=795085068552896564&permissions=8&integration_type=0&scope=applications.commands+bot)", ephemeral= True)
+        await interaction.response.send_message("[Celestia Reloaded at your service](https://discord.com/oauth2/authorize?client_id=795085068552896564&permissions=8&integration_type=0&scope=applications.commands+bot)", ephemeral= True)
 
 ##############################################
 async def setup(bot: commands.Bot) -> None:

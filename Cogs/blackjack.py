@@ -205,7 +205,7 @@ class BlackjackCog(commands.Cog):
         safeToStart= game.start_game()
 
         if not safeToStart:
-            await interaction.response.send_message(f"Please make sure you have at least {bet*2} points to bet else you'd go into debt", ephemeral= True)
+            await interaction.response.send_message(f"Please make sure you have at least {bet*2} <:CelestialPoints:1412891132559495178> to bet else you'd go into debt", ephemeral= True)
 
         view = BlackjackView(game)
 
