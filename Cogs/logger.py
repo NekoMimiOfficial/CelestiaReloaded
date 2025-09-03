@@ -77,6 +77,7 @@ class logger(commands.Cog):
         channel = int(channel.split("::", 1)[0])
         print(f"seg {channel}")
         botAllow= file.read().split("::", 1)[1].split(";", 1)[0]
+        print(f"seg {botAllow}")
         if botAllow == "f":
             botAllow= False
         else:
