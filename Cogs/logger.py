@@ -64,18 +64,24 @@ class logger(commands.Cog):
     def get_log_channel(self,guild):
         base = 'dataStore/'
         guild = str(guild)
+        print(f"seg {guild}")
         file = open(base+guild+'.txt','r')
+        print("seg filer")
         channel = file.read()
         if not "::" in channel:
+            print("the one and only")
             with open(f"{base}{guild}.txt", "w") as buffer:
                 buffer.write(f"{channel.strip()}::f;")
             return (int(channel.strip()), False)
+        print("seg not old")
         channel = int(channel.split("::", 1)[0])
+        print(f"seg {channel}")
         botAllow= file.read().split("::", 1)[1].split(";", 1)[0]
         if botAllow == "f":
             botAllow= False
         else:
             botAllow= True
+        print(channel, botAllow)
         return (channel, botAllow)
 
     def check_log_channel(self,guild):
