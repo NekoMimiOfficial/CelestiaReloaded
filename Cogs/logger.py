@@ -19,6 +19,24 @@ class logger(commands.Cog):
             return False
         else:
             return True
+
+    def botToggle(self, guild, toggle):
+        base= "dataStore/"
+        try:
+            os.mkdir(base)
+        except:
+            pass
+        if self.check_log_channel(guild):
+            if toggle:
+                t= "t"
+            else:
+                t= "f"
+            with open(f"{base}{guild}.txt", "w+") as buffer:
+                chanID= buffer.read().split("::", 1)[0]
+                buffer.write(f"{chanID}::{t};")
+            return "Succesfully toggled the bot filter."
+        else:
+            return "You seem to not have modlogging enabled in this guild."
             
 
     def create_log_channel(self,guild,channel):
@@ -27,9 +45,20 @@ class logger(commands.Cog):
             os.mkdir(base)
         except:
             pass
+        if self.check_log_channel(guild):
+            bot= "f"
+            with open(base+guild+".txt", "r") as buffer:
+                bot= buffer.read().split("::", 1)[1].split(";", 1)[0]
+            with open(base+guild+".txt", "w") as buffer:
+                if bot == "f":
+                    stat= "0"
+                else:
+                    stat= "1"
+                buffer.write(str(channel)+f"::{stat};")
+                return
         guild = str(guild)
         file = open(base+guild+'.txt','w+')
-        file.write(str(channel))
+        file.write(str(channel)+"::0;")
         file.close()
 
     def get_log_channel(self,guild):
@@ -37,8 +66,17 @@ class logger(commands.Cog):
         guild = str(guild)
         file = open(base+guild+'.txt','r')
         channel = file.read()
-        channel = int(channel)
-        return channel
+        if not "::" in channel:
+            with open(f"{base}{guild}.txt", "w") as buffer:
+                buffer.write(f"{channel.strip()}::f;")
+            return int(channel.strip()), False
+        channel = int(channel.split("::", 1)[0])
+        botAllow= file.read().split("::", 1)[1].split(";", 1)[0]
+        if botAllow == "f":
+            botAllow= False
+        else:
+            botAllow= True
+        return channel, botAllow
 
     def check_log_channel(self,guild):
         guild = str(guild)
@@ -80,8 +118,18 @@ class logger(commands.Cog):
         work = self.rm_log_channel(guild)
         await interaction.response.send_message(work)
 
+    @logging.command(name= "monitor-bots", description= "Sets whether you want to monitor bot messages")
+    @app_commands.describe(toggle= "True for enabling bot monitoring, False otherwise")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator= True)
+    async def monbot(self, interaction: discord.Interaction, toggle: bool):
+        guild= interaction.guild_id
+        resp= self.botToggle(guild, toggle)
+        embed= discord.Embed(color= 0xEE90AC, description=resp)
+        await interaction.response.send_message(embed= embed, ephemeral= True)
+
     @commands.Cog.listener()
-    async def on_message_delete(self,message):
+    async def on_message_delete(self,message: discord.Message):
         if not message.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             guild = message.guild.id
             chk = self.check_log_channel(guild)
@@ -93,8 +141,11 @@ class logger(commands.Cog):
                 author = message.author #Defines the message author
                 content = message.content #Defines the message content
                 channel = message.channel #Defines the message channel
-                logchnl = self.get_log_channel(guild)
+                logchnl, botAllow = self.get_log_channel(guild)
                 logchannel = self.bot.get_channel(logchnl)
+                if author.bot:
+                    if not botAllow:
+                        return
                 embed = discord.Embed(color=0xff5500,title="Message Deleted",description=f"A message by `{author.name}` was deleted that contains \n```\n{content}\n```\nin channel `{channel}`")
                 embed.set_thumbnail(url=author.avatar.url)
                 await logchannel.send(embed=embed)
@@ -111,8 +162,11 @@ class logger(commands.Cog):
                 contentB = self.fixEdit(contentB)
                 contentA = self.fixEdit(contentA)
                 channel = before.channel #Defines the message channel
-                logchnl = self.get_log_channel(guild)
+                logchnl, botAllow = self.get_log_channel(guild)
                 logchannel = self.bot.get_channel(logchnl)
+                if author.bot:
+                    if not botAllow:
+                        return
                 embed = discord.Embed(color=0xffff00,title="Message Edited",description=f"A message by `{author.name}` was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
                 embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
@@ -126,7 +180,7 @@ class logger(commands.Cog):
         guild = member.guild.id
         chk = self.check_log_channel(guild)
         if chk == True:
-            logchnl = self.get_log_channel(guild)
+            logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0x00ff11,title="Member Joined",description=f"Member `{member.name}` has joined the server !")
             await logchannel.send(embed = embed)
@@ -136,7 +190,7 @@ class logger(commands.Cog):
         guild = member.guild.id
         chk = self.check_log_channel(guild)
         if chk == True:
-            logchnl = self.get_log_channel(guild)
+            logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0xff0033,title="Member Left",description=f"Member `{member.name}` has left the server .")
             await logchannel.send(embed = embed)
