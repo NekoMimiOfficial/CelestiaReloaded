@@ -1,3 +1,4 @@
+from datetime import date, time
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -131,6 +132,30 @@ class logger(commands.Cog):
         await interaction.response.send_message(embed= embed, ephemeral= True)
 
     @commands.Cog.listener()
+    async def on_guild_role_create(self, role: discord.Role):
+        if not self.check_log_channel(role.guild.id):
+            return
+        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        embed= discord.Embed(color= 0xb7bdf8, title= "Role Created")
+        embed.add_field(name= "Role name", value= role.name, inline= True)
+        embed.add_field(name= "Role color", value= role.color, inline= True)
+        embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
+        embed.add_field(name= "Permissions", value= str(role.permissions), inline= False)
+        await self.bot.get_channel(logchnl).send(embed= embed)
+
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role: discord.Role):
+        if not self.check_log_channel(role.guild.id):
+            return
+        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        embed= discord.Embed(color= 0xc6a0f6, title= "Role Deleted")
+        embed.add_field(name= "Role name", value= role.name, inline= True)
+        embed.add_field(name= "Role color", value= role.color, inline= True)
+        embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
+        embed.add_field(name= "Permissions", value= str(role.permissions), inline= False)
+        await self.bot.get_channel(logchnl).send(embed= embed)
+
+    @commands.Cog.listener()
     async def on_message_delete(self,message: discord.Message):
         if not message.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             guild = message.guild.id
@@ -148,7 +173,7 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xff5500,title="Message Deleted",description=f"A message by `{author.name}` was deleted that contains \n```\n{content}\n```\nin channel `{channel}`")
+                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted that contains \n```\n{content}\n```\nin channel `{channel}`")
                 embed.set_thumbnail(url=author.avatar.url)
                 await logchannel.send(embed=embed)
 
@@ -169,7 +194,7 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xffff00,title="Message Edited",description=f"A message by `{author.name}` was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
+                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by `{author.name}` was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
                 embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
                 if chk == True:
@@ -178,13 +203,23 @@ class logger(commands.Cog):
                     pass
 
     @commands.Cog.listener()
-    async def on_member_join(self,member):
+    async def on_member_join(self,member: discord.Member):
         guild = member.guild.id
         chk = self.check_log_channel(guild)
         if chk == True:
             logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
-            embed = discord.Embed(color=0x00ff11,title="Member Joined",description=f"Member `{member.name}` has joined the server !")
+            embed = discord.Embed(color=0xa6da95,title="Member Joined",description=f"Member `{member.display_name}` has joined the server !")
+
+            embed.set_thumbnail(url=member.display_avatar)
+
+            embed.add_field(name="Full name", value=member.global_name, inline=True)
+            embed.add_field(name="Nickname", value=member.nick if hasattr(member, "nick") else "None", inline=True)
+            embed.add_field(name= "UID", value= member.id)
+            embed.add_field(name= "SID", value= member.name)
+            embed.add_field(name="Account created", value=member.created_at.date(), inline=True)
+            embed.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
+
             await logchannel.send(embed = embed)
 
     @commands.Cog.listener()
@@ -194,7 +229,17 @@ class logger(commands.Cog):
         if chk == True:
             logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
-            embed = discord.Embed(color=0xff0033,title="Member Left",description=f"Member `{member.name}` has left the server .")
+            embed = discord.Embed(color=0xed8796,title="Member Left",description=f"Member `{member.name}` has left the server .")
+
+            embed.set_thumbnail(url=member.display_avatar)
+
+            embed.add_field(name="Full name", value=member.global_name, inline=True)
+            embed.add_field(name= "UID", value= member.id)
+            embed.add_field(name= "SID", value= member.name)
+            embed.add_field(name="Account created", value=member.created_at.date(), inline=True)
+            embed.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
+            embed.add_field(name="Left this server", value=date.today(), inline=True)
+
             await logchannel.send(embed = embed)
 
 
