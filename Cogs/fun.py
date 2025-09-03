@@ -72,15 +72,15 @@ class Fun_Commands(commands.Cog):
         if points > 4:
             if (a == b == c):
                 writeScr(str(interaction.user.id), str(interaction.guild_id), 100)
-                await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
+                await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` <:CelestialPoints:1412891132559495178>! 🎉")
             elif (a == b) or (a == c) or (b == c):
                 writeScr(str(interaction.user.id), str(interaction.guild_id), 10)
-                await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` Celestial Points! 🎉")
+                await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` <:CelestialPoints:1412891132559495178>! 🎉")
             else:
                 writeScr(str(interaction.user.id), str(interaction.guild_id), -5)
-                await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` Celestial Points 😢")
+                await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` <:CelestialPoints:1412891132559495178> 😢")
         else:
-            await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` points, keep talking!"), ephemeral= True)
+            await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` <:CelestialPoints:1412891132559495178>, keep talking!"), ephemeral= True)
 
     @app_commands.command(name= "waifu", description= "Get a random waifu image")
     @app_commands.guild_only()

@@ -24,7 +24,7 @@ def check(uid, gid):
     if gdb == "":
         db.store(str(uid), "0:0")
 
-def user_xp(ts, uid, gid):
+def user_xp(ts, uid, gid, dname):
     dbName= "Celestia-Guilds-"+str(gid)
     db= reg.Database(dbName)
     qs= db.query(str(uid))
@@ -40,8 +40,8 @@ def user_xp(ts, uid, gid):
     get_lb= db.query("lb")
     for line in get_lb.split("\n"):
         try:
-            score, suid = line.strip().split(',')
-            lb.append({'user_id': suid, 'score': int(score)})
+            score, suid, name = line.strip().split(',')
+            lb.append({'user_id': suid, 'score': int(score), 'name': name})
         except ValueError:
             continue
 
@@ -49,18 +49,19 @@ def user_xp(ts, uid, gid):
     for entry in lb:
         if entry['user_id'] == str(uid):
             entry['score'] = xp
+            entry['name'] = dname
             isOnBoard = True
             break
 
     if not isOnBoard:
         if len(lb) < 10 or xp > min(entry['score'] for entry in lb):
-            lb.append({'user_id': str(uid), 'score': xp})
+            lb.append({'user_id': str(uid), 'score': xp, 'name': dname})
 
     lb.sort(key=lambda x: x['score'], reverse=True)
 
     new_lb= ""
     for entry in lb:
-        new_lb= new_lb+ f"{entry['score']},{entry['user_id']}\n"
+        new_lb= new_lb+ f"{entry['score']},{entry['user_id']},{entry['name']}\n"
     db.store("lb", new_lb)
 
     return lb[:10]
@@ -75,7 +76,7 @@ class PointsCog(commands.Cog):
     async def __com_points(self, interaction: discord.Interaction):
         points= get_point_count(str(interaction.user.id), str(interaction.guild_id))
         em0= discord.Embed(title= f"Points of {interaction.user.display_name}", colour= 0xEE90AC)
-        em0.add_field(name= "Points", value= f"`{points}` CelestialPoints")
+        em0.add_field(name= "Points", value= f"`{points}` <:CelestialPoints:1412891132559495178>")
         await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
@@ -87,8 +88,8 @@ class PointsCog(commands.Cog):
         get_lb= db.query("lb")
         for line in get_lb.split("\n"):
             try:
-                score, suid = line.strip().split(',')
-                lb.append({'user_id': suid, 'score': int(score)})
+                score, suid, name = line.strip().split(',')
+                lb.append({'user_id': suid, 'score': int(score), 'name': name})
             except ValueError:
                 continue
         lb= lb[:10]
@@ -100,7 +101,7 @@ class PointsCog(commands.Cog):
                 spacer= "\n"
             else:
                 spacer= ""
-            body= body+ f"[{i}] {interaction.guild.get_member(int(entry['user_id'])).display_name} -> `{int(entry['score'])+1}`CelestialPoints\n{spacer}"
+            body= body+ f"[{i}] {entry['name']} | `{int(entry['score'])+1}`<:CelestialPoints:1412891132559495178> | lvl{lvl(entry['score']+1)}\n{spacer}"
             i+= 1
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
         embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0]["user_id"])).display_avatar)
@@ -110,7 +111,7 @@ class PointsCog(commands.Cog):
     async def on_message(self, message: discord.Message):
         if not message.author.bot:
             check(message.author.id, message.guild.id)
-            user_xp(message.created_at.timestamp(), message.author.id, message.guild.id)
+            user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name)
 
 
 async def setup(bot):
