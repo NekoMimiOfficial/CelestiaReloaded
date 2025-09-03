@@ -22,7 +22,7 @@ def writeScr(uid, gid, amt):
     q= db.query(uid)
     r= int(q.split(":")[0])
     r= r+amt
-    db.store(uid, f"{r:{q.split(':')[1]}}")
+    db.store(uid, f"{r}:{q.split(':', 1)[1]}")
 
 class Fun_Commands(commands.Cog):
     def __init__(self, bot):
@@ -71,10 +71,10 @@ class Fun_Commands(commands.Cog):
         if points > 4:
             if (a == b == c):
                 await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` Celestial Points! 🎉")
-                writeScr(str(interaction.user.id), str(interaction.guild_id), 200)
+                writeScr(str(interaction.user.id), str(interaction.guild_id), 100)
             elif (a == b) or (a == c) or (b == c):
                 await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` Celestial Points! 🎉")
-                writeScr(str(interaction.user.id), str(interaction.guild_id), 25)
+                writeScr(str(interaction.user.id), str(interaction.guild_id), 10)
             else:
                 await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` Celestial Points 😢")
                 writeScr(str(interaction.user.id), str(interaction.guild_id), -5)

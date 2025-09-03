@@ -23,9 +23,6 @@ def check(uid, gid):
     gdb= db.query(str(uid))
     if gdb == "":
         db.store(str(uid), "0:0")
-    # ldb= db.query("lb")
-    # if ldb == "":
-        # db.store("lb", "0:0;0:0;0:0;0:0;0:0;0:0;0:0;0:0;")
 
 def user_xp(ts, uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
