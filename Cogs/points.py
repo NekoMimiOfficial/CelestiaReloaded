@@ -51,20 +51,23 @@ def user_xp(ts, uid, gid):
     isOnBoard= False
     for entry in lb:
         if entry['user_id'] == str(uid):
-            entry['score'] = xp+1
+            entry['score'] = xp
             isOnBoard = True
             break
 
     if not isOnBoard:
-        if len(lb) < 10 or xp+1 > min(entry['score'] for entry in lb):
-            lb.append({'user_id': str(uid), 'score': xp+1})
+        if len(lb) < 10 or xp > min(entry['score'] for entry in lb):
+            lb.append({'user_id': str(uid), 'score': xp})
 
     lb.sort(key=lambda x: x['score'], reverse=True)
 
-    new_lb
+    new_lb= ""
     for entry in lb:
         new_lb= new_lb+ f"{entry['score']},{entry['user_id']}\n"
-    db.store(new_lb)
+    db.store("lb", new_lb)
+
+    print(lb)
+    print(new_lb)
 
     return lb[:10]
 
@@ -78,7 +81,7 @@ class PointsCog(commands.Cog):
     async def __com_points(self, interaction: discord.Interaction):
         points= get_point_count(str(interaction.user.id), str(interaction.guild_id))
         em0= discord.Embed(title= f"Points of {interaction.user.display_name}", colour= 0xEE90AC)
-        em0.add_field(name= "Points", value= f"`{points}` CP")
+        em0.add_field(name= "Points", value= f"`{points}` CelestialPoints")
         await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
@@ -86,10 +89,23 @@ class PointsCog(commands.Cog):
     async def __com_lb(self, interaction: discord.Interaction):
         regName= "Celestia-Guilds-"+str(interaction.guild_id)
         db= reg.Database(regName)
-        lb= db.query("lb")
-        body= str(lb)
+        lb= []
+        get_lb= db.query("lb")
+        for line in get_lb.split("\n"):
+            try:
+                score, suid = line.strip().split(',')
+                lb.append({'user_id': suid, 'score': int(score)})
+            except ValueError:
+                continue
+        lb= lb[:10]
+
+        body= ""
+        i= 1
+        for entry in lb:
+            body= body+ f"[{i}] {interaction.guild.get_member(int(entry['user_id'])).display_name} -> `{int(entry['score'])+1}`CelestialPoints\n"
+            i+= 1
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
-        embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0].split(":")[1])).display_avatar)
+        embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0]["user_id"])).display_avatar)
         await interaction.response.send_message(embed= embed)
 
     @commands.Cog.listener()
