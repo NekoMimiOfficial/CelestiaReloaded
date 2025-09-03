@@ -142,8 +142,10 @@ class logger(commands.Cog):
                 content = message.content #Defines the message content
                 channel = message.channel #Defines the message channel
                 logchnl, botAllow = self.get_log_channel(guild)
+                print(logchnl, botAllow)
                 logchannel = self.bot.get_channel(logchnl)
                 if author.bot:
+                    print(author.id)
                     if not botAllow:
                         return
                 embed = discord.Embed(color=0xff5500,title="Message Deleted",description=f"A message by `{author.name}` was deleted that contains \n```\n{content}\n```\nin channel `{channel}`")
