@@ -23,9 +23,9 @@ def check(uid, gid):
     gdb= db.query(str(uid))
     if gdb == "":
         db.store(str(uid), "0:0")
-    ldb= db.query("lb")
-    if ldb == "":
-        db.store("lb", "0:0;0:0;0:0;0:0;0:0;0:0;0:0;0:0;")
+    # ldb= db.query("lb")
+    # if ldb == "":
+        # db.store("lb", "0:0;0:0;0:0;0:0;0:0;0:0;0:0;0:0;")
 
 def user_xp(ts, uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
@@ -38,33 +38,36 @@ def user_xp(ts, uid, gid):
     ts= int(ts)
     if (ts - tso) > TIME:
         db.store(str(uid), f"{xp+1}:{ts}")
-    lb= db.query("lb").split(";")
-    del lb[-1]
 
-    isOnLb= False
-    for spot in lb:
-        if spot.split(":")[1] == str(uid):
-            isOnLb= True
+    lb= []
+    get_lb= db.query("lb")
+    for line in get_lb.split("\n"):
+        try:
+            score, suid = line.strip().split(',')
+            lb.append({'user_id': suid, 'score': int(score)})
+        except ValueError:
+            continue
 
-    if isOnLb:
-        i= 0
-        for spot in lb:
-            if spot.split(":")[1] == str(uid):
-                del lb[i]
-            i= i+1
-        lb.append("0:0")
+    isOnBoard= False
+    for entry in lb:
+        if entry['user_id'] == str(uid):
+            entry['score'] = xp+1
+            isOnBoard = True
+            break
 
-    i= 0
-    for spot in lb:
-        if int(spot.split(":")[0]) < xp:
-            lb[i] = f"{xp}:{uid}"
-            lbs= ""
-            for entry in lb:
-                lbs= lbs+ f"{entry};"
-            db.store("lb", lbs)
-            return lb
+    if not isOnBoard:
+        if len(lb) < 10 or xp+1 > min(entry['score'] for entry in lb):
+            lb.append({'user_id': str(uid), 'score': xp+1})
 
-    return lb
+    lb.sort(key=lambda x: x['score'], reverse=True)
+
+    new_lb
+    for entry in lb:
+        new_lb= new_lb+ f"{entry['score']},{entry['user_id']}\n"
+    db.store(new_lb)
+
+    return lb[:10]
+
 
 class PointsCog(commands.Cog):
     def __init__(self, bot):
@@ -83,21 +86,8 @@ class PointsCog(commands.Cog):
     async def __com_lb(self, interaction: discord.Interaction):
         regName= "Celestia-Guilds-"+str(interaction.guild_id)
         db= reg.Database(regName)
-        lb= db.query("lb").split(";")
-        del lb[-1]
-        for j in range(4):
-            i= 0
-            for spot in lb:
-                if spot.startswith("0"):
-                    del lb[i]
-                i= i+1
-        body= ""
-        for spot in lb:
-            uid= int(spot.split(":")[1])
-            user= interaction.guild.get_member(uid)
-            name= user.display_name
-            points= int(spot.split(":")[0])
-            body= body + f"> **{name}** | points: {points} | lvl:{lvl(points)}" + "\n\n"
+        lb= db.query("lb")
+        body= str(lb)
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
         embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0].split(":")[1])).display_avatar)
         await interaction.response.send_message(embed= embed)
