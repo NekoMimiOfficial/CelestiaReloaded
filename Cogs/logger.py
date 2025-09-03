@@ -144,6 +144,27 @@ class logger(commands.Cog):
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
+    async def on_guild_role_update(self, roleO: discord.Role, roleN):
+        if not self.check_log_channel(role.guild.id):
+            return
+        logchnl, botAllow= self.get_log_channel(role.guild.id)
+        if roleO.name == roleN.name:
+            rname= roleO.name
+        else:
+            rname= f"{roleN.name} (old: {roleO.name})"
+
+        if roleO.color == roleN.color:
+            rcol= roleO.color
+        else:
+            rcol= f"{roleN.color} (old: {roleO.color})"
+        embed= discord.Embed(color= 0x8aadf4, title= "Role Updated")
+        embed.add_field(name= "Role name", value= rname, inline= True)
+        embed.add_field(name= "Role color", value= rcol, inline= True)
+        embed.add_field(name= "Created at", value= roleO.created_at.date(), inline= True)
+        embed.add_field(name= "Permissions", value= str(roleN.permissions), inline= False)
+        await self.bot.get_channel(logchnl).send(embed= embed)
+
+    @commands.Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role):
         if not self.check_log_channel(role.guild.id):
             return
