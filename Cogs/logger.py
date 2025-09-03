@@ -69,14 +69,14 @@ class logger(commands.Cog):
         if not "::" in channel:
             with open(f"{base}{guild}.txt", "w") as buffer:
                 buffer.write(f"{channel.strip()}::f;")
-            return int(channel.strip()), False
+            return (int(channel.strip()), False)
         channel = int(channel.split("::", 1)[0])
         botAllow= file.read().split("::", 1)[1].split(";", 1)[0]
         if botAllow == "f":
             botAllow= False
         else:
             botAllow= True
-        return channel, botAllow
+        return (channel, botAllow)
 
     def check_log_channel(self,guild):
         guild = str(guild)
