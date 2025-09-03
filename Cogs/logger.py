@@ -67,7 +67,9 @@ class logger(commands.Cog):
         print(f"seg {guild}")
         file = open(base+guild+'.txt','r')
         print("seg filer")
-        channel = file.read()
+        contents= file.read()
+        file.close()
+        channel = contents
         if not "::" in channel:
             print("the one and only")
             with open(f"{base}{guild}.txt", "w") as buffer:
@@ -75,8 +77,8 @@ class logger(commands.Cog):
             return (int(channel.strip()), False)
         print("seg not old")
         channel = int(channel.split("::", 1)[0])
-        print(f"seg {channel}")
-        botAllow= file.read().split("::", 1)[1].split(";", 1)[0]
+        print(f"seg {channel} {contents}")
+        botAllow= contents.split("::", 1)[1].split(";", 1)[0]
         print(f"seg {botAllow}")
         if botAllow == "f":
             botAllow= False
