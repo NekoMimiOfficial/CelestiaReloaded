@@ -138,7 +138,7 @@ class BlackjackView(discord.ui.View):
         embed = discord.Embed(
             title="Blackjack",
             description="The game is in progress!",
-            color=discord.Color.green()
+            color=0xEE90AC
         )
 
         player_hand_str = self.game.get_hand_string(self.game.player_hand)
