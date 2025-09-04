@@ -7,6 +7,53 @@ class ModCog(commands.Cog):
     def __init__(self, bot):
         self.bot= bot
 
+    class KickerButtonC(discord.ui.Button):
+        def __init__(self, members):
+            super().__init__(label= "Confirm", style= discord.ButtonStyle.green)
+            self.members= members
+
+        async def callback(self, interaction: discord.Interaction):
+            if not interaction.user.guild_permissions.administrator:
+                await interaction.response.send_message("Only an administrator can use this button.")
+            await interaction.message.delete()
+            await interaction.response.send_message("Operation completed", ephemeral= True)
+
+    class KickerButtonS(discord.ui.Button):
+        def __init__(self, members):
+            super().__init__(label= "Cancel", style= discord.ButtonStyle.red)
+            self.members= members
+
+        async def callback(self, interaction: discord.Interaction):
+            if not interaction.user.guild_permissions.administrator:
+                await interaction.response.send_message("Only an administrator can use this button.")
+            await interaction.message.delete()
+            await interaction.response.send_message("Operation canceled", ephemeral= True)
+
+    class Kicker(discord.ui.View):
+        def __init__(self, members: list[discord.Member]):
+            super().__init__(timeout=None)
+            self.add_item(ModCog.KickerButtonC(members))
+            self.add_item(ModCog.KickerButtonS(members))
+
+    @app_commands.command(name= "kick-if-no-role", description= "kicks all the members who dont have a specific role")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator= True)
+    @app_commands.describe(role= "The role a user must have to NOT get kicked.")
+    async def __CMD_kne(self, interaction: discord.Interaction, role: discord.Role):
+        members= []
+        for member in interaction.guild.members:
+            isGhost= True
+            for mem_role in member.roles:
+                if mem_role.id == role.id:
+                    isGhost= False
+                    break
+            if isGhost:
+                members.append(member)
+
+        embed= discord.Embed(color= 0xEE90AC, title= f"Kicking **{len(members)}** members", description= "ARE YOU SURE YOU WANT TO KICK THESE MEMBERS?\nThis action is irreversible")
+        view= self.Kicker(members)
+        await interaction.response.send_message(embed= embed, view= view)
+
     @app_commands.command(name= "purge")
     @app_commands.guild_only()
     @app_commands.describe(count= "Amount of messages to purge")
