@@ -100,16 +100,16 @@ class Blackjack:
 
         if self.player_bust():
             writeScr(self.uid, self.gid, self.bet*-2)
-            return f"Player Busts! Dealer wins! You lost {self.bet*2} <:CelestialPoints:1412891132559495178>"
+            return f"Player Busts! You **LOST** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
         elif self.dealer_bust():
             writeScr(self.uid, self.gid, self.bet*2)
-            return f"Dealer Busts! Player wins! You won {self.bet*2} <:CelestialPoints:1412891132559495178>"
+            return f"Dealer Busts! You **WON** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
         elif player_value > dealer_value:
             writeScr(self.uid, self.gid, self.bet*2)
-            return f"Player wins! You won {self.bet*2} <:CelestialPoints:1412891132559495178>"
+            return f"Player wins! You **WON** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
         elif dealer_value > player_value:
             writeScr(self.uid, self.gid, self.bet*-2)
-            return f"Dealer wins! You lost {self.bet*2} <:CelestialPoints:1412891132559495178>"
+            return f"Dealer wins! You **LOST** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
         else:
             return "It's a tie!"
 

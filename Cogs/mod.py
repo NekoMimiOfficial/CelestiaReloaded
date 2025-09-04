@@ -35,7 +35,7 @@ class ModCog(commands.Cog):
                 continue
             show_roles= show_roles+ f"`{role.name}` "
 
-        embed = discord.Embed(colour=0xEE90AC,title=f"About **{user.display_name}**")
+        embed = discord.Embed(colour=0xEE90AC,title=f"About {user.mention}")
         embed.set_thumbnail(url=user.display_avatar)
 
         embed.add_field(name="Full name", value=user.global_name, inline=True)

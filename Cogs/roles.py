@@ -60,6 +60,18 @@ class RolesCog(commands.Cog):
         db.store("join-role", "0:")
         await interaction.response.send_message(f"Join role disabled.")
 
+    @role_commands.command(name= "user-verify-welcome-message", description= "Sets the welcome message that a user gets after a successful verification")
+    @app_commands.describe(message= "The message to send to the user once verification is complete. use [user] or [guild] to mention the user or guild.")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator= True)
+    async def __CMD_verity_welcome(self, interaction: discord.Interaction, message: str):
+        db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
+        message= message
+        if message == "":
+            message= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
+        db.store("welcome-msg", message)
+        await interaction.response.send_message("Done!\nI will now greet your members with the following message apon verification\n"+message, ephemeral= True)
+
     @role_commands.command(name= "user-verify", description= "A tool to grant users a role when they manage to verify successfully.")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
@@ -67,8 +79,8 @@ class RolesCog(commands.Cog):
     async def __CMD_verity_cs(self, interaction: discord.Interaction, verifygrantrole: discord.Role):
         db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
         db.store("verity-cs", str(verifygrantrole.id))
-        await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
         await interaction.channel.send(f"✿  Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role.", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
+        await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
 
 
     class VerificationButton(discord.ui.Button):
@@ -77,18 +89,20 @@ class RolesCog(commands.Cog):
 
         async def callback(self, interaction: discord.Interaction):
             db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
-            print("start operation")
             roleID= int(db.query("verity-cs"))
-            print("get RID")
+            welcome_msg= db.query("welcome-msg")
+            if welcome_msg == "":
+                welcome_msg= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
+
+            welcome_msg= welcome_msg.replace("[user]", interaction.user.display_name)
+            welcome_msg= welcome_msg.replace("[guild]", interaction.guild.name)
             role= interaction.guild.get_role(roleID)
-            print("get Role")
             if role:
                 try:
                     await interaction.user.add_roles(role, reason= "Verified successfully")
-                    print("assign Role")
                 except Exception as e:
                     await interaction.response.send_message(f"Internal error: {e}\n\nPlease report this to the devs")
-                await interaction.response.send_message("❀  Access granted!\nHave a safe stay :pink_heart:", ephemeral= True)
+                await interaction.response.send_message(f"❀  {welcome_msg}", ephemeral= True)
             else:
                 await interaction.response.send_message("❀  Error granting role!\nPlease report this to the admins", ephemeral= True)
 

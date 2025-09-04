@@ -217,7 +217,7 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by `{author.name}` was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
+                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
                 embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
                 if chk == True:
@@ -232,7 +232,7 @@ class logger(commands.Cog):
         if chk == True:
             logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
-            embed = discord.Embed(color=0xa6da95,title="Member Joined",description=f"Member `{member.display_name}` has joined the server !")
+            embed = discord.Embed(color=0xa6da95,title="Member Joined",description=f"Member {member.mention} has joined the server !")
 
             embed.set_thumbnail(url=member.display_avatar)
 
@@ -252,7 +252,7 @@ class logger(commands.Cog):
         if chk == True:
             logchnl, _ = self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
-            embed = discord.Embed(color=0xed8796,title="Member Left",description=f"Member `{member.name}` has left the server .")
+            embed = discord.Embed(color=0xed8796,title="Member Left",description=f"Member {member.mention} has left the server .")
 
             embed.set_thumbnail(url=member.display_avatar)
 
