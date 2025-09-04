@@ -35,7 +35,7 @@ class ModCog(commands.Cog):
             self.add_item(ModCog.KickerButtonC(members))
             self.add_item(ModCog.KickerButtonS(members))
 
-    @app_commands.command(name= "kick-if-no-role", description= "kicks all the members who dont have a specific role")
+    @app_commands.command(name= "ghost-bust", description= "kicks all the members who dont have a specific role")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
     @app_commands.describe(role= "The role a user must have to NOT get kicked.")
