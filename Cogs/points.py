@@ -39,7 +39,7 @@ def time_chatting(p: int):
     if mins > 60:
         hours= int(mins/60)
 
-    return f"{hours}:{mins}:{sec%60}"
+    return f"{hours}:{mins%60}:{sec%60}"
 
 def check(uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
