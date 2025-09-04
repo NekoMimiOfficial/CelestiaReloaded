@@ -35,7 +35,7 @@ class ModCog(commands.Cog):
 
     class Kicker(discord.ui.View):
         def __init__(self, members: list[discord.Member]):
-            super().__init__(timeout=None)
+            super().__init__(timeout=300)
             self.add_item(ModCog.KickerButtonC(members))
             self.add_item(ModCog.KickerButtonS(members))
 
