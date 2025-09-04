@@ -30,6 +30,17 @@ def get_point_count(uid, gid):
         return r
     return int(q.split(":")[0])
 
+def time_chatting(p: int):
+    sec= p
+    mins= 0
+    hours= 0
+    if sec > 60:
+        mins= int(sec/60)
+    if mins > 60:
+        hours= int(mins/60)
+
+    return f"{hours}:{mins}:{sec}"
+
 def check(uid, gid):
     dbName= "Celestia-Guilds-"+str(gid)
     db= reg.Database(dbName)
@@ -89,10 +100,14 @@ class PointsCog(commands.Cog):
     async def __com_points(self, interaction: discord.Interaction):
         points= get_point_count(str(interaction.user.id), str(interaction.guild_id))
         tnl= to_next_lvl(points)
+        tchat= time_chatting(points)
         em0= discord.Embed(title= f"Points of {interaction.user.display_name}", colour= 0xEE90AC)
         em0.add_field(name= "Points", value= f"`{points}` <:CelestialPoints:1412891132559495178>", inline= True)
         em0.add_field(name= "Level", value=f"`{lvl(points)}`", inline= True)
-        em0.add_field(name= "Level-up after", value= f"`{tnl}` <:CelestialPoints:1412891132559495178>")
+        em0.add_field(name= "Time chatting", value= f"`{tchat}`", inline= True)
+        em0.add_field(name= "Level-up after", value= f"`{tnl}` <:CelestialPoints:1412891132559495178>", inline= True)
+        em0.add_field(name= "Base level points", value= f"`{anti_lvl(lvl(points))}` <:CelestialPoints:1412891132559495178>", inline= True)
+        em0.add_field(name= "Next level points", value= f"`{anti_lvl(lvl(points)+1)}` <:CelestialPoints:1412891132559495178>", inline= True)
         await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
