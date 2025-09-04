@@ -83,7 +83,7 @@ class RolesCog(commands.Cog):
     @role_commands.command(name= "user-roles-remove-from-list", description= "Remove a role from the user role list")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
-    async def __CMD_role_menu_user(self, interaction: discord.Interaction):
+    async def __CMD_role_menu_admin(self, interaction: discord.Interaction):
         registryName= "Celestia-Guilds-"+str(interaction.guild_id);
         registry= nreg.Database(registryName);
         if registry.query("uc-rolemenu") == "":
