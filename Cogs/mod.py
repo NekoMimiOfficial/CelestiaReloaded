@@ -23,9 +23,8 @@ class ModCog(commands.Cog):
             await interaction.response.send_message("The ghosts have been busted!\nEnjoy your fresh server!")
 
     class KickerButtonS(discord.ui.Button):
-        def __init__(self, members):
+        def __init__(self):
             super().__init__(label= "Cancel", style= discord.ButtonStyle.red)
-            self.members= members
 
         async def callback(self, interaction: discord.Interaction):
             if not interaction.user.guild_permissions.administrator:
@@ -37,7 +36,7 @@ class ModCog(commands.Cog):
         def __init__(self, members: list[discord.Member]):
             super().__init__(timeout=300)
             self.add_item(ModCog.KickerButtonC(members))
-            self.add_item(ModCog.KickerButtonS(members))
+            self.add_item(ModCog.KickerButtonS())
 
     @app_commands.command(name= "ghost-bust", description= "kicks all the members who dont have a specific role")
     @app_commands.guild_only()
