@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from discord.ext import commands
 from discord import app_commands
 from discord.webhook.async_ import interaction_response_params
@@ -8,15 +9,18 @@ class ModCog(commands.Cog):
         self.bot= bot
 
     class KickerButtonC(discord.ui.Button):
-        def __init__(self, members):
+        def __init__(self, members: list[discord.Member]):
             super().__init__(label= "Confirm", style= discord.ButtonStyle.green)
             self.members= members
 
         async def callback(self, interaction: discord.Interaction):
             if not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("Only an administrator can use this button.")
+            for member in self.members:
+                await member.kick(reason= "Ghost busted!")
+                await asyncio.sleep(0.5)
             await interaction.message.delete()
-            await interaction.response.send_message("Operation completed", ephemeral= True)
+            await interaction.response.send_message("The ghosts have been busted!\nEnjoy your fresh server!")
 
     class KickerButtonS(discord.ui.Button):
         def __init__(self, members):
