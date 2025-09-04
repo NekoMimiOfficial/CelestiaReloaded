@@ -10,6 +10,7 @@ class RolesCog(commands.Cog):
 
     class UCSelect(discord.ui.Select):
         def __init__(self, uc):
+            self.uc= uc
             options = []
             for entry in uc:
                 options.append(discord.SelectOption(label= entry["role_name"], emoji= "📌"))
@@ -18,16 +19,32 @@ class RolesCog(commands.Cog):
 
         async def callback(self, interaction: discord.Interaction):
             selected_option = self.values[0]
-            await interaction.response.send_message(f"You selected: **{selected_option}**", ephemeral=True)
+            aidee= 0
+            for entry in self.uc:
+                if entry["role_name"] == selected_option:
+                    aidee= entry["role_id"]
+            try:
+                drole= interaction.guild.get_role(aidee)
+                if drole:
+                    toRemove= False
+                    for role in interaction.user.roles:
+                        if role.id == aidee:
+                            toRemove= True
+                    if toRemove:
+                        await interaction.user.remove_roles(drole, reason= "User role de-assignment")
+                        await interaction.response.send_message(f"You got rid of the {drole.mention} role!", ephemeral=True)
+                        return
+                    await interaction.user.add_roles(drole, reason= "User role assignment")
+                    await interaction.response.send_message(f"You have acquired the {drole.mention} role!", ephemeral=True)
+                else:
+                    await interaction.response.send_message("An error occured, please report this to the devs")
+            except Exception as e:
+                await interaction.response.send_message(f"An error has occured, please contact a mod, error: {e}")
 
     class UCView(discord.ui.View):
         def __init__(self, uc):
-            super().__init__(timeout=None)
+            super().__init__(timeout= 300)
             self.add_item(RolesCog.UCSelect(uc))
-            
-        @property
-        def persistent_id(self):
-            return "Celestia-User-Roles"
 
     role_commands= app_commands.Group(name= "roles", description= "Manage multiple role settings")
 
@@ -156,12 +173,6 @@ class RolesCog(commands.Cog):
             print("[  ok  ] attaching Verifier view")
         except Exception as e:
             print(f"[ fail ] attaching Verifier: {e}")
-
-        try:
-            self.bot.add_view(self.UCView())
-            print("[  ok  ] attaching User Roles view")
-        except Exception as e:
-            print(f"[ fail ] attaching User Roles: {e}")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
