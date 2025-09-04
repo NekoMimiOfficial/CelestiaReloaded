@@ -31,7 +31,7 @@ def get_point_count(uid, gid):
     return int(q.split(":")[0])
 
 def time_chatting(p: int):
-    sec= p
+    sec= p* TIME
     mins= 0
     hours= 0
     if sec > 60:
