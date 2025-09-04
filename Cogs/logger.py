@@ -1,4 +1,5 @@
 from datetime import date, time
+import datetime
 import discord
 from discord.ext import commands
 from discord import app_commands, role
@@ -141,6 +142,7 @@ class logger(commands.Cog):
         embed.add_field(name= "Role color", value= role.color, inline= True)
         embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
         embed.add_field(name= "Permissions", value= str(role.permissions.value), inline= False)
+        embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
@@ -164,6 +166,7 @@ class logger(commands.Cog):
         embed.add_field(name= "Role color", value= rcol, inline= True)
         embed.add_field(name= "Created at", value= roleO.created_at.date(), inline= True)
         embed.add_field(name= "Permissions", value= str(roleN.permissions.value), inline= False)
+        embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
@@ -176,6 +179,7 @@ class logger(commands.Cog):
         embed.add_field(name= "Role color", value= role.color, inline= True)
         embed.add_field(name= "Created at", value= role.created_at.date(), inline= True)
         embed.add_field(name= "Permissions", value= str(role.permissions.value), inline= False)
+        embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
         await self.bot.get_channel(logchnl).send(embed= embed)
 
     @commands.Cog.listener()
@@ -196,8 +200,11 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted that contains \n```\n{content}\n```\nin channel `{channel}`")
+                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted")
+                embed.add_field(name= "Message Deleted", value= f"```\n{content}\n```")
                 embed.set_thumbnail(url=author.avatar.url)
+                embed.set_footer(text= f"In channel: {channel.mention} | ")
+                embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 await logchannel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -217,7 +224,11 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited from \n```\n{contentB}\n```\n to ```\n{contentA}\n```\nin channel `{channel}`")
+                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited")
+                embed.add_field(name= "From", value= f"```\n{contentB}\n```", inline= True)
+                embed.add_field(name= "After", value= f"```\n{contentA}\n```", inline= True)
+                embed.set_footer(text= f"In channel: {channel.mention} | ")
+                embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
                 if chk == True:
@@ -242,6 +253,7 @@ class logger(commands.Cog):
             embed.add_field(name= "SID", value= member.name)
             embed.add_field(name="Account created", value=member.created_at.date(), inline=True)
             embed.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
+            embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
 
             await logchannel.send(embed = embed)
 
@@ -262,6 +274,7 @@ class logger(commands.Cog):
             embed.add_field(name="Account created", value=member.created_at.date(), inline=True)
             embed.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
             embed.add_field(name="Left this server", value=date.today(), inline=True)
+            embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
 
             await logchannel.send(embed = embed)
 
