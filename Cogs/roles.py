@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands.models import app_command_option_factory
 from discord.ext import commands
 from discord import app_commands
 
@@ -15,7 +16,7 @@ class RolesCog(commands.Cog):
             for entry in uc:
                 options.append(discord.SelectOption(label= entry["role_name"], emoji= "📌"))
             
-            super().__init__(placeholder="Choose an option...", min_values=1, max_values=1, options=options, custom_id="my_persistent_select")
+            super().__init__(placeholder="Choose an option...", min_values=1, max_values=1, options=options)
 
         async def callback(self, interaction: discord.Interaction):
             selected_option = self.values[0]
@@ -46,7 +47,65 @@ class RolesCog(commands.Cog):
             super().__init__(timeout= 300)
             self.add_item(RolesCog.UCSelect(uc))
 
+    class UCRSelect(discord.ui.Select):
+        def __init__(self, uc):
+            self.uc= uc
+            options = []
+            for entry in uc:
+                options.append(discord.SelectOption(label= entry["role_name"], emoji= "📌"))
+            
+            super().__init__(placeholder="Choose an option...", min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            selected_option = self.values[0]
+            aidee= 0
+            for entry in self.uc:
+                if entry["role_name"] == selected_option:
+                    break
+                aidee= aidee+ 1
+
+            self.uc.pop(aidee)
+            new_uc= ""
+            db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
+            for entry in self.uc:
+                new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']}\n"
+            db.store("uc-rolemenu", new_uc)
+            await interaction.response.send_message(f"the role **{selected_option}** has been removed successfully", ephemeral= True)
+
+
+    class UCRView(discord.ui.View):
+        def __init__(self, uc):
+            super().__init__(timeout= 300)
+            self.add_item(RolesCog.UCRSelect(uc))
+
     role_commands= app_commands.Group(name= "roles", description= "Manage multiple role settings")
+
+    @role_commands.command(name= "user-roles-remove-from-list", description= "Remove a role from the user role list")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator= True)
+    async def __CMD_role_menu_user(self, interaction: discord.Interaction):
+        registryName= "Celestia-Guilds-"+str(interaction.guild_id);
+        registry= nreg.Database(registryName);
+        if registry.query("uc-rolemenu") == "":
+            setup= False;
+        else:
+            setup= True;
+
+        if not setup:
+            await interaction.response.send_message("[user-roles] the user role menu hasn't been setup for this guild", ephemeral= True);
+            return;
+        uc= []
+        get_uc= registry.query("uc-rolemenu")
+        for line in get_uc.split("\n"):
+            try:
+                name, rid = line.strip().split(',')
+                uc.append({'role_name': name, 'role_id': int(rid)})
+            except ValueError:
+                continue
+
+        view = self.UCRView(uc)
+        await interaction.response.send_message("Select role to remove:", view=view, ephemeral= True)
+
 
     @role_commands.command(name= "user-roles", description= "Allows users to assign themselves roles from a menu")
     @app_commands.guild_only()
