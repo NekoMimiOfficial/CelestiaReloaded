@@ -200,7 +200,7 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted in {channel.mention}")
+                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by {author.mention} was deleted in {channel.mention}")
                 embed.add_field(name= "Message Deleted", value= f"```\n{content}\n```")
                 embed.set_thumbnail(url=author.avatar.url)
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
