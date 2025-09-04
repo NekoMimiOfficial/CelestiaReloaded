@@ -200,10 +200,9 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted")
+                embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by `{author.name}` was deleted in {channel.mention}")
                 embed.add_field(name= "Message Deleted", value= f"```\n{content}\n```")
                 embed.set_thumbnail(url=author.avatar.url)
-                embed.set_footer(text= f"In channel: {channel.mention} | ")
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 await logchannel.send(embed=embed)
 
@@ -224,10 +223,9 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited")
+                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited in {channel.mention}")
                 embed.add_field(name= "From", value= f"```\n{contentB}\n```", inline= True)
                 embed.add_field(name= "After", value= f"```\n{contentA}\n```", inline= True)
-                embed.set_footer(text= f"In channel: {channel.mention} | ")
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
