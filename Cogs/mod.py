@@ -17,8 +17,6 @@ class ModCog(commands.Cog):
             if not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("Only an administrator can use this button.")
             for member in self.members:
-                if member.bot:
-                    continue
                 try:
                     await member.kick(reason= "Ghost busted!")
                     await asyncio.sleep(0.5)
@@ -52,7 +50,7 @@ class ModCog(commands.Cog):
         for member in interaction.guild.members:
             isGhost= True
             for mem_role in member.roles:
-                if mem_role.id == role.id:
+                if mem_role.id == role.id or member.bot:
                     isGhost= False
                     break
             if isGhost:
