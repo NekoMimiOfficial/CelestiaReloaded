@@ -17,8 +17,13 @@ class ModCog(commands.Cog):
             if not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("Only an administrator can use this button.")
             for member in self.members:
-                await member.kick(reason= "Ghost busted!")
-                await asyncio.sleep(0.5)
+                if member.bot:
+                    continue
+                try:
+                    await member.kick(reason= "Ghost busted!")
+                    await asyncio.sleep(0.5)
+                except Exception as e:
+                    print(f"[ghost buster] error busting {member.display_name}, {e}")
             await interaction.message.delete()
             await interaction.response.send_message("The ghosts have been busted!\nEnjoy your fresh server!")
 
