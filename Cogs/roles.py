@@ -195,10 +195,10 @@ class RolesCog(commands.Cog):
     async def __CMD_verity_cs(self, interaction: discord.Interaction, verifygrantrole: discord.Role, message: str= None):
         default_msg= "Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role."
         message= message or default_msg
-        message.replace("[guild]", interaction.guild.name)
-        message.replace("[role]", verifygrantrole.name)
-        message.replace("[owner]", interaction.guild.owner.mention)
-        message.replace("<br>", "\n")
+        message= message.replace("[guild]", interaction.guild.name)
+        message= message.replace("[role]", verifygrantrole.name)
+        message= message.replace("[owner]", interaction.guild.owner.mention)
+        message= message.replace("<br>", "\n")
         db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
         db.store("verity-cs", str(verifygrantrole.id))
         await interaction.channel.send(f"✿  {message}", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
