@@ -2,6 +2,7 @@ import discord
 from discord.app_commands.models import app_command_option_factory
 from discord.ext import commands
 from discord import app_commands
+import os, datetime
 
 from NekoMimi import reg as nreg
 
@@ -201,6 +202,34 @@ class RolesCog(commands.Cog):
         def __init__(self):
             super().__init__(label= "Verify", style= discord.ButtonStyle.green, custom_id= "CelestiaVerifyService")
 
+        def get_log_channel(self,guild):
+            base = 'dataStore/'
+            guild = str(guild)
+            file = open(base+guild+'.txt','r')
+            contents= file.read()
+            file.close()
+            channel = contents
+            if not "::" in channel:
+                with open(f"{base}{guild}.txt", "w") as buffer:
+                    buffer.write(f"{channel.strip()}::f;")
+                return (int(channel.strip()), False)
+            channel = int(channel.split("::", 1)[0])
+            botAllow= contents.split("::", 1)[1].split(";", 1)[0]
+            if botAllow == "f":
+                botAllow= False
+            else:
+                botAllow= True
+            return (channel, botAllow)
+
+        def check_log_channel(self,guild):
+            guild = str(guild)
+            base = f'dataStore/{guild}.txt'
+            isRight = os.path.exists(base)
+            if isRight == True:
+                return True
+            else:
+                return False
+
         async def callback(self, interaction: discord.Interaction):
             db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
             roleID= int(db.query("verity-cs"))
@@ -217,6 +246,21 @@ class RolesCog(commands.Cog):
                 except Exception as e:
                     await interaction.response.send_message(f"Internal error: {e}\n\nPlease report this to the devs")
                 await interaction.response.send_message(f"❀  {welcome_msg}", ephemeral= True)
+                logchnlid, _= self.get_log_channel(interaction.guild_id)
+                logging= interaction.guild.get_channel(logchnlid)
+                verbed= discord.Embed(color= 0xEE90AC, title= f"Member {interaction.user.mention} passed verification")
+                verbed.set_thumbnail(url=interaction.user.display_avatar)
+
+                verbed.add_field(name="Full name", value=interaction.user.global_name, inline=True)
+                verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(user, "nick") else "None", inline=True)
+                verbed.add_field(name= "UID", value= interaction.user.id)
+                verbed.add_field(name= "SID", value= interaction.user.name)
+                verbed.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
+                verbed.add_field(name="Joined this server", value=interaction.user.joined_at.date(), inline=True)
+                verbed.timestamp= datetime.datetime.now(datetime.timezone.utc)
+
+                await logging.send(embed= verbed)
+
             else:
                 await interaction.response.send_message("❀  Error granting role!\nPlease report this to the admins", ephemeral= True)
 
