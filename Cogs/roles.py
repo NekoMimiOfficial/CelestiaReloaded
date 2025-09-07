@@ -245,22 +245,28 @@ class RolesCog(commands.Cog):
                     await interaction.user.add_roles(role, reason= "Verified successfully")
                 except Exception as e:
                     await interaction.response.send_message(f"Internal error: {e}\n\nPlease report this to the devs")
+                    return
+
+                try:
+                    print(interaction.guild_id)
+                    logchnlid, _= self.get_log_channel(interaction.guild_id)
+                    print(logchnlid)
+                    logging= interaction.guild.get_channel(logchnlid)
+                    verbed= discord.Embed(color= 0xEE90AC, title= f"Member {interaction.user.mention} passed verification")
+                    verbed.set_thumbnail(url=interaction.user.display_avatar)
+
+                    verbed.add_field(name="Full name", value=interaction.user.global_name, inline=True)
+                    verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(user, "nick") else "None", inline=True)
+                    verbed.add_field(name= "UID", value= interaction.user.id)
+                    verbed.add_field(name= "SID", value= interaction.user.name)
+                    verbed.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
+                    verbed.add_field(name="Joined this server", value=interaction.user.joined_at.date(), inline=True)
+                    verbed.timestamp= datetime.datetime.now(datetime.timezone.utc)
+
+                    await logging.send(embed= verbed)
+                except:
+                    pass
                 await interaction.response.send_message(f"❀  {welcome_msg}", ephemeral= True)
-                logchnlid, _= self.get_log_channel(interaction.guild_id)
-                logging= interaction.guild.get_channel(logchnlid)
-                verbed= discord.Embed(color= 0xEE90AC, title= f"Member {interaction.user.mention} passed verification")
-                verbed.set_thumbnail(url=interaction.user.display_avatar)
-
-                verbed.add_field(name="Full name", value=interaction.user.global_name, inline=True)
-                verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(user, "nick") else "None", inline=True)
-                verbed.add_field(name= "UID", value= interaction.user.id)
-                verbed.add_field(name= "SID", value= interaction.user.name)
-                verbed.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
-                verbed.add_field(name="Joined this server", value=interaction.user.joined_at.date(), inline=True)
-                verbed.timestamp= datetime.datetime.now(datetime.timezone.utc)
-
-                await logging.send(embed= verbed)
-
             else:
                 await interaction.response.send_message("❀  Error granting role!\nPlease report this to the admins", ephemeral= True)
 
