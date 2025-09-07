@@ -33,8 +33,10 @@ class logger(commands.Cog):
                 t= "t"
             else:
                 t= "f"
-            with open(f"{base}{guild}.txt", "w+") as buffer:
+            chanID= ""
+            with open(f"{base}{guild}.txt", "r") as buffer:
                 chanID= buffer.read().split("::", 1)[0]
+            with open(f"{base}{guild}.txt", "w") as buffer:
                 buffer.write(f"{chanID}::{t};")
             return "Succesfully toggled the bot filter."
         else:
@@ -52,15 +54,16 @@ class logger(commands.Cog):
             with open(base+guild+".txt", "r") as buffer:
                 bot= buffer.read().split("::", 1)[1].split(";", 1)[0]
             with open(base+guild+".txt", "w") as buffer:
+                stat= ""
                 if bot == "f":
-                    stat= "0"
+                    stat= "f"
                 else:
-                    stat= "1"
+                    stat= "t"
                 buffer.write(str(channel)+f"::{stat};")
                 return
         guild = str(guild)
         file = open(base+guild+'.txt','w+')
-        file.write(str(channel)+"::0;")
+        file.write(str(channel)+"::f;")
         file.close()
 
     def get_log_channel(self,guild):
