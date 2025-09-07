@@ -189,12 +189,19 @@ class RolesCog(commands.Cog):
 
     @role_commands.command(name= "user-verify", description= "A tool to grant users a role when they manage to verify successfully.")
     @app_commands.guild_only()
+    @app_commands.describe(message= "The message which you want to display on the verifier, use the following phrases to add some dynamic text, [guild] for guild name, [owner] for owner mention, [role] for role mention, <br> for a new line")
     @app_commands.checks.has_permissions(administrator= True)
     @app_commands.describe(verifygrantrole= "The role to grant members who succeed in the verification.")
-    async def __CMD_verity_cs(self, interaction: discord.Interaction, verifygrantrole: discord.Role):
+    async def __CMD_verity_cs(self, interaction: discord.Interaction, verifygrantrole: discord.Role, message: str= None):
+        default_msg= "Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role."
+        message= message or default_msg
+        message.replace("[guild]", interaction.guild.name)
+        message.replace("[role]", verifygrantrole.name)
+        message.replace("[owner]", interaction.guild.owner.mention)
+        message.replace("<br>", "\n")
         db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
         db.store("verity-cs", str(verifygrantrole.id))
-        await interaction.channel.send(f"✿  Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role.", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
+        await interaction.channel.send(f"✿  {message}", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
         await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
 
 
