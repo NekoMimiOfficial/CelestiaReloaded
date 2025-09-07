@@ -196,7 +196,7 @@ class RolesCog(commands.Cog):
         default_msg= "Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role."
         message= message or default_msg
         message= message.replace("[guild]", interaction.guild.name)
-        message= message.replace("[role]", verifygrantrole.name)
+        message= message.replace("[role]", verifygrantrole.mention)
         message= message.replace("[owner]", interaction.guild.owner.mention)
         message= message.replace("<br>", "\n")
         db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
