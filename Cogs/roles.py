@@ -254,7 +254,7 @@ class RolesCog(commands.Cog):
                     verbed.set_thumbnail(url=interaction.user.display_avatar)
 
                     verbed.add_field(name="Full name", value=interaction.user.global_name, inline=True)
-                    verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(user, "nick") else "None", inline=True)
+                    verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(interaction.user, "nick") else "None", inline=True)
                     verbed.add_field(name= "UID", value= interaction.user.id)
                     verbed.add_field(name= "SID", value= interaction.user.name)
                     verbed.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
