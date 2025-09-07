@@ -248,9 +248,7 @@ class RolesCog(commands.Cog):
                     return
 
                 try:
-                    print(interaction.guild_id)
                     logchnlid, _= self.get_log_channel(interaction.guild_id)
-                    print(logchnlid)
                     logging= interaction.guild.get_channel(logchnlid)
                     verbed= discord.Embed(color= 0xEE90AC, title= f"Member {interaction.user.mention} passed verification")
                     verbed.set_thumbnail(url=interaction.user.display_avatar)
