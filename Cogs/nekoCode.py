@@ -43,8 +43,9 @@ class Owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def guilds(self, ctx):
+        # usually i dont think my bot will be that popular so i wont handle if the message gets too large
         g_list= self.bot.guilds
-        await ctx.send("## List of guilds:")
+        body= ""
         for g in g_list:
 
             for channel in g.channels:
@@ -53,9 +54,12 @@ class Owner(commands.Cog):
                     break
             try:
                 invite= await first_channel.create_invite(max_age= 300)
-                await ctx.send(invite)
+                body += f"[{g.name} @ {g.id}]({invite})\n"
             except:
-                pass
+                body += f"{g.name} @ {g.id} (failed to get invite)\n"
+
+        embed= discord.Embed(title= "List of guilds that house Celestia", color= 0xEE90AC, description= body)
+        await ctx.send(embed= embed)
 
     @discord.app_commands.command(name= "neofetch", description= "Get the neofetch output of the bot host")
     async def __cmd_neofetch(self, interaction: discord.Interaction):

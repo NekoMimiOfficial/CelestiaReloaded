@@ -88,15 +88,18 @@ class ModCog(commands.Cog):
                 continue
             show_roles= show_roles+ f"`{role.name}` "
 
-        embed = discord.Embed(colour=0xEE90AC,title=f"About {user.mention}")
+        embed = discord.Embed(colour=0xEE90AC,title=f"About user", description= "{user.mention}")
         embed.set_thumbnail(url=user.display_avatar)
 
-        embed.add_field(name="Full name", value=user.global_name, inline=True)
-        embed.add_field(name="Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
+        embed.add_field(name= "Full name", value=user.global_name, inline=True)
+        embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
         embed.add_field(name= "UID", value= user.id)
         embed.add_field(name= "SID", value= user.name)
-        embed.add_field(name="Account created", value=user.created_at.date(), inline=True)
-        embed.add_field(name="Joined this server", value=user.joined_at.date(), inline=True)
+        embed.add_field(name= "Account created", value=user.created_at.date(), inline=True)
+        embed.add_field(name= "Joined this server", value=user.joined_at.date(), inline=True)
+        embed.add_field(name= "Social Score", value= "Coming soon", inline= True)
+        embed.add_field(name= "Discord Credit", value= "Coming soon", inline= True)
+        embed.add_field(name= "Standing", value= "Coming soon", inline= True)
         embed.add_field(name="Roles", value=show_roles, inline=False)
 
         await interaction.response.send_message(embed=embed)
