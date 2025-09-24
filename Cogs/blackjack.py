@@ -82,6 +82,7 @@ class Blackjack:
     def start_game(self):
         if self.bet*2 > self.bank:
             return False
+        writeScr(self.uid, self.gid, self.bet*-1)
         self.hit(self.player_hand)
         self.hit(self.dealer_hand)
         self.hit(self.player_hand)
@@ -100,16 +101,16 @@ class Blackjack:
 
         if self.player_bust():
             writeScr(self.uid, self.gid, self.bet*-2)
-            return f"Player Busts! You **LOST** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
+            return f"Player Busts! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif self.dealer_bust():
             writeScr(self.uid, self.gid, self.bet*2)
-            return f"Dealer Busts! You **WON** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
-        elif player_value > dealer_value:
+            return f"Dealer Busts! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
+        elif player_value > dealer_value:``
             writeScr(self.uid, self.gid, self.bet*2)
-            return f"Player wins! You **WON** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
+            return f"Player wins! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif dealer_value > player_value:
             writeScr(self.uid, self.gid, self.bet*-2)
-            return f"Dealer wins! You **LOST** `{self.bet*2}` <:CelestialPoints:1412891132559495178>"
+            return f"Dealer wins! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         else:
             return "It's a tie!"
 
