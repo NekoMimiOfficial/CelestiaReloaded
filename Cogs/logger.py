@@ -5,6 +5,11 @@ from discord.ext import commands
 from discord import app_commands, role
 import os.path
 
+import Tools.DBCables as cables
+
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
+
 class logger(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
@@ -22,88 +27,33 @@ class logger(commands.Cog):
         else:
             return True
 
-    def botToggle(self, guild, toggle):
-        base= "dataStore/"
-        try:
-            os.mkdir(base)
-        except:
-            pass
-        if self.check_log_channel(guild):
-            if toggle:
-                t= "t"
-            else:
-                t= "f"
-            chanID= ""
-            with open(f"{base}{guild}.txt", "r") as buffer:
-                chanID= buffer.read().split("::", 1)[0]
-            with open(f"{base}{guild}.txt", "w") as buffer:
-                buffer.write(f"{chanID}::{t};")
-            return "Succesfully toggled the bot filter."
-        else:
-            return "You seem to not have modlogging enabled in this guild."
-            
+    def create_log_channel(self, gid: int, cid: int):
+        sqldb.set_g_mod(gid, cid)
+        sqldb.set_g_bot(gid, sqldb.get_g_mod(gid))
 
-    def create_log_channel(self,guild,channel):
-        base = 'dataStore/'
-        try:
-            os.mkdir(base)
-        except:
-            pass
-        if self.check_log_channel(guild):
-            bot= "f"
-            with open(base+guild+".txt", "r") as buffer:
-                bot= buffer.read().split("::", 1)[1].split(";", 1)[0]
-            with open(base+guild+".txt", "w") as buffer:
-                stat= ""
-                if bot == "f":
-                    stat= "f"
-                else:
-                    stat= "t"
-                buffer.write(str(channel)+f"::{stat};")
-                return
-        guild = str(guild)
-        file = open(base+guild+'.txt','w+')
-        file.write(str(channel)+"::f;")
-        file.close()
+    def rm_log_channel(self, gid: int)-> str:
+        chk= sqldb.chk_g_mod(gid)
+        if not chk:
+            return "This server isn't registered in the modlog system..."
+        sqldb.set_g_mod(gid, 0)
+        return "This server is now registered in the modlog system."
 
-    def get_log_channel(self,guild):
-        base = 'dataStore/'
-        guild = str(guild)
-        file = open(base+guild+'.txt','r')
-        contents= file.read()
-        file.close()
-        channel = contents
-        if not "::" in channel:
-            with open(f"{base}{guild}.txt", "w") as buffer:
-                buffer.write(f"{channel.strip()}::f;")
-            return (int(channel.strip()), False)
-        channel = int(channel.split("::", 1)[0])
-        botAllow= contents.split("::", 1)[1].split(";", 1)[0]
-        if botAllow == "f":
-            botAllow= False
-        else:
-            botAllow= True
-        return (channel, botAllow)
+    def botToggle(self, gid: int, toggle: bool)-> str:
+        bot= 0
+        if toggle:
+            bot= 1
+        sqldb.set_g_bot(gid, bot)
+        if bot == 0:
+            return "Successfully removed bots from the modlog!"
+        return "Successfully enabled bot monitoring in modlog!"
 
-    def check_log_channel(self,guild):
-        guild = str(guild)
-        base = f'dataStore/{guild}.txt'
-        isRight = os.path.exists(base)
-        if isRight == True:
-            return True
-        else:
-            return False
+    def get_log_channel(self, gid: int): # tuple(int, bool)
+        log_c= sqldb.get_g_mod(gid)
+        log_b= sqldb.get_g_bot(gid)
+        return (log_c, log_b)
 
-    def rm_log_channel(self,guild):
-        guild = str(guild)
-        base = f'dataStore/{guild}.txt'
-        isRight = os.path.exists(base)
-        if isRight == True:
-            os.remove(f'dataStore/{guild}.txt')
-            return "Succesfully removed modlog !"
-        else:
-            return "Erm .. this server isn't enrolled in the modlog database"
-
+    def check_log_channel(self, gid: int)-> bool:
+        return sqldb.chk_g_mod(gid)
 
     logging= app_commands.Group(name= "logging", description= "Mod log tools")
 
@@ -205,12 +155,13 @@ class logger(commands.Cog):
                         return
                 embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by {author.mention} was deleted in {channel.mention}")
                 embed.add_field(name= "Message Deleted", value= f"```\n{content}\n```")
-                embed.set_thumbnail(url=author.avatar.url)
+                if author.avatar.url:
+                    embed.set_thumbnail(url=author.avatar.url)
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 await logchannel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_message_edit(self,before,after):
+    async def on_message_edit(self,before,after: discord.Message):
         if not before.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             guild = before.guild.id
             chk = self.check_log_channel(guild)
@@ -226,11 +177,12 @@ class logger(commands.Cog):
                 if author.bot:
                     if not botAllow:
                         return
-                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A message by {author.mention} was edited in {channel.mention}")
+                embed = discord.Embed(color=0xeed49f,title="Message Edited",description=f"A [message]({after.jump_url}) by {author.mention} was edited in {channel.mention}")
                 embed.add_field(name= "From", value= f"```\n{contentB}\n```", inline= True)
                 embed.add_field(name= "After", value= f"```\n{contentA}\n```", inline= True)
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
-                embed.set_thumbnail(url=author.avatar.url)
+                if author.avatar.url:
+                    embed.set_thumbnail(url=author.avatar.url)
                 chk = self.checkEdit(contentB,contentA)
                 if chk == True:
                     await logchannel.send(embed=embed)
@@ -246,7 +198,8 @@ class logger(commands.Cog):
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0xa6da95,title="Member Joined",description=f"Member {member.mention} has joined the server !")
 
-            embed.set_thumbnail(url=member.display_avatar)
+            if member.display_avatar:
+                embed.set_thumbnail(url=member.display_avatar)
 
             embed.add_field(name="Full name", value=member.global_name, inline=True)
             embed.add_field(name="Nickname", value=member.nick if hasattr(member, "nick") else "None", inline=True)
@@ -267,7 +220,8 @@ class logger(commands.Cog):
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0xed8796,title="Member Left",description=f"Member {member.mention} has left the server .")
 
-            embed.set_thumbnail(url=member.display_avatar)
+            if member.display_avatar:
+                embed.set_thumbnail(url=member.display_avatar)
 
             embed.add_field(name="Full name", value=member.global_name, inline=True)
             embed.add_field(name= "UID", value= member.id)

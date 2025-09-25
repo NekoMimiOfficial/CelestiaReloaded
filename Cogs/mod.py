@@ -1,8 +1,59 @@
 import discord
 import asyncio
+import math
 from discord.ext import commands
 from discord import app_commands
 from discord.webhook.async_ import interaction_response_params
+
+import Tools.DBCables as cables
+
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
+
+TIME= 10
+DIFFICULTY= 100
+DIFF_FACTOR= 1.25
+
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
+
+def lvl(p: int):
+
+    if p < DIFFICULTY:
+        return 0
+
+    return int(math.floor(math.log(p / DIFFICULTY, DIFF_FACTOR)))
+
+def anti_lvl(p: int):
+    return int(math.ceil((DIFF_FACTOR ** p) * DIFFICULTY))
+
+def to_next_lvl(p:int):
+    return int(anti_lvl(lvl(p)+1) - anti_lvl(lvl(p)) - (p - anti_lvl(lvl(p))))
+
+def get_point_count(uid, gid):
+    return sqldb.get_gu_pts(uid, gid)
+
+def time_chatting(p: int):
+    sec= p* TIME
+    mins= 0
+    hours= 0
+    if sec >= 60:
+        mins= int(sec/60)
+    if mins >= 60:
+        hours= int(mins/60)
+
+    return f"{hours}:{mins%60}:{sec%60}"
+
+def scparse(sc: int):
+    if sc >= 95:
+        return "Perfect"
+    if sc >= 60:
+        return "Good"
+    if sc >= 50:
+        return "Average"
+    if sc >= 30:
+        return "Iffy"
+    return "Dangerous"
 
 class ModCog(commands.Cog):
     def __init__(self, bot):
@@ -86,10 +137,26 @@ class ModCog(commands.Cog):
         for role in user.roles:
             if role.name == "@everyone":
                 continue
-            show_roles= show_roles+ f"`{role.name}` "
+            show_roles= show_roles+ f"`[{role.name}]` "
 
-        embed = discord.Embed(colour=0xEE90AC,title=f"About user", description= "{user.mention}")
-        embed.set_thumbnail(url=user.display_avatar)
+        embed = discord.Embed(colour=0xEE90AC,title=f"About user: {user.display_name}", description= f"{user.mention}")
+        if user.display_avatar:
+            embed.set_thumbnail(url=user.display_avatar)
+
+        lm= sqldb.get_u_last(int(user.id))
+        full_ts= f"<t:{int(lm)}:R>"
+        if lm == 0 or not lm:
+            full_ts= "`Unknown`"
+
+        dcl= sqldb.get_u_dc(int(user.id))
+        if not dcl:
+            dcl= 0
+
+        scl= sqldb.get_u_sc(int(user.id))
+        if not scl:
+            scl= 0
+        scl= int(scl)
+        scp= scparse(scl)
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
@@ -97,9 +164,9 @@ class ModCog(commands.Cog):
         embed.add_field(name= "SID", value= user.name)
         embed.add_field(name= "Account created", value=user.created_at.date(), inline=True)
         embed.add_field(name= "Joined this server", value=user.joined_at.date(), inline=True)
-        embed.add_field(name= "Social Score", value= "Coming soon", inline= True)
-        embed.add_field(name= "Discord Credit", value= "Coming soon", inline= True)
-        embed.add_field(name= "Standing", value= "Coming soon", inline= True)
+        embed.add_field(name= "Social Score", value= f"`{scl} | {scp}`", inline= True)
+        embed.add_field(name= "Discord Credit", value= f"`{dcl} | {time_chatting(dcl)}`\n`lvl: {lvl(dcl)}`", inline= True)
+        embed.add_field(name= "Last Message", value= full_ts, inline= True)
         embed.add_field(name="Roles", value=show_roles, inline=False)
 
         await interaction.response.send_message(embed=embed)

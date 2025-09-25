@@ -6,15 +6,15 @@ import os
 
 from NekoMimi import utils as nm
 from NekoMimi import reg
-import nekos
+import Tools.DBCables as cables
 
 
 print(nm.figlet("Celestia", "larry3d"))
 
 token= reg.readCell("celestia")
-activity= discord.Game(name= "NekoSimulator 9000", platform= "PS5", assets= {'large_url':'https://nekomimi.tilde.team/res/misc/NekoLabs-D.png', 'large_text':'NekoSim9k'})
+activity= discord.Activity(type= discord.ActivityType.watching, name= "Neko code in c++, cobol and assembly :'3")
 prefixes= ['c!', 'C!', 'c ', 'C ', "hey honeypie ", "Hey honeypie ", "hey honeypie, ", "Hey honeypie, "]
-bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all(), activity= activity)
+bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all(), activity= activity, status= discord.Status.idle)
 
 #startup tasks
 print(f"Starting up Celestia Reloaded")
@@ -39,6 +39,11 @@ async def load():
     await bot.load_extension("jishaku")
 
 async def startup():
+    if not os.path.exists("celestia_datastore.db"):
+        sqldb= cables.Cables("celestia_datastore.db")
+        sqldb.connect()
+        sqldb.format()
+        sqldb.close()
     await load()
     await bot.start(token)
 

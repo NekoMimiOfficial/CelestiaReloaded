@@ -5,25 +5,19 @@ import nekos
 
 from discord import app_commands
 from discord.ext import commands
-from NekoMimi import reg
+import Tools.DBCables as cables
 
-def getScr(uid, gid):
-    regName= "Celestia-Guilds-"+gid
-    db= reg.Database(regName)
-    q= db.query(uid)
-    r= 0
-    if q == "":
-        return r
-    return int(q.split(":")[0])
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
 
-def writeScr(uid, gid, amt):
-    regName= "Celestia-Guilds-"+gid
-    db= reg.Database(regName)
-    q= db.query(str(uid))
-    r= int(q.split(":")[0])
-    ts= str(q.split(":")[1])
-    r= r+amt
-    db.store(str(uid), f"{r}:{ts}")
+def getScr(uid: int):
+    return int(sqldb.get_u_bank(uid))
+
+def writeScr(uid: int, amt: int):
+    if amt > 0:
+        sqldb.inc_u_bank(uid, amt)
+    else:
+        sqldb.dec_u_bank(uid, amt*-1)
 
 class Fun_Commands(commands.Cog):
     def __init__(self, bot):
@@ -68,16 +62,16 @@ class Fun_Commands(commands.Cog):
         c = random.choice(emojis)
 
         slotmachine = f"**[ {a} {b} {c} ]\n{interaction.user.display_name}**,"
-        points = getScr(str(interaction.user.id), str(interaction.guild_id))
+        points = getScr(int(interaction.user.id))
         if points > 4:
             if (a == b == c):
-                writeScr(str(interaction.user.id), str(interaction.guild_id), 100)
+                writeScr(int(interaction.user.id), 100)
                 await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` <:CelestialPoints:1412891132559495178>! 🎉")
             elif (a == b) or (a == c) or (b == c):
-                writeScr(str(interaction.user.id), str(interaction.guild_id), 10)
+                writeScr(int(interaction.user.id), 10)
                 await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` <:CelestialPoints:1412891132559495178>! 🎉")
             else:
-                writeScr(str(interaction.user.id), str(interaction.guild_id), -5)
+                writeScr(int(interaction.user.id), -5)
                 await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` <:CelestialPoints:1412891132559495178> 😢")
         else:
             await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` <:CelestialPoints:1412891132559495178>, keep talking!"), ephemeral= True)

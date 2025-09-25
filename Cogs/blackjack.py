@@ -5,23 +5,18 @@ from NekoMimi import reg
 import random
 import asyncio
 
-def getScr(uid, gid):
-    regName= "Celestia-Guilds-"+gid
-    db= reg.Database(regName)
-    q= db.query(uid)
-    r= 0
-    if q == "":
-        return r
-    return int(q.split(":")[0])
+import Tools.DBCables as cables
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
 
-def writeScr(uid, gid, amt):
-    regName= "Celestia-Guilds-"+gid
-    db= reg.Database(regName)
-    q= db.query(str(uid))
-    r= int(q.split(":")[0])
-    ts= str(q.split(":")[1])
-    r= r+amt
-    db.store(str(uid), f"{r}:{ts}")
+def getScr(uid: int):
+    return int(sqldb.get_u_bank(uid))
+
+def writeScr(uid: int, amt: int):
+    if amt > 0:
+        sqldb.inc_u_bank(uid, amt)
+    else:
+        sqldb.dec_u_bank(uid, amt*-1)
 
 class Blackjack:
     def __init__(self, gid, uid, money):
@@ -29,10 +24,10 @@ class Blackjack:
         self.player_hand = []
         self.dealer_hand = []
         self.game_over = False
-        self.uid= str(uid)
-        self.gid= str(gid)
+        self.uid= int(uid)
+        self.gid= int(gid)
         self.bet= money
-        self.bank= getScr(str(uid), str(gid))
+        self.bank= getScr(int(uid))
 
     def create_deck(self):
         """Creates and shuffles a standard 52-card deck."""
@@ -82,7 +77,7 @@ class Blackjack:
     def start_game(self):
         if self.bet*2 > self.bank:
             return False
-        writeScr(self.uid, self.gid, self.bet*-1)
+        writeScr(self.uid, self.bet*-1)
         self.hit(self.player_hand)
         self.hit(self.dealer_hand)
         self.hit(self.player_hand)
@@ -100,16 +95,16 @@ class Blackjack:
         dealer_value = self.calculate_hand_value(self.dealer_hand)
 
         if self.player_bust():
-            writeScr(self.uid, self.gid, self.bet*-2)
+            writeScr(self.uid, self.bet*-2)
             return f"Player Busts! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif self.dealer_bust():
-            writeScr(self.uid, self.gid, self.bet*2)
+            writeScr(self.uid, self.bet*2)
             return f"Dealer Busts! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
-        elif player_value > dealer_value:``
-            writeScr(self.uid, self.gid, self.bet*2)
+        elif player_value > dealer_value:
+            writeScr(self.uid, self.bet*2)
             return f"Player wins! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif dealer_value > player_value:
-            writeScr(self.uid, self.gid, self.bet*-2)
+            writeScr(self.uid, self.bet*-2)
             return f"Dealer wins! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         else:
             return "It's a tie!"

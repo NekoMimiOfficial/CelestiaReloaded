@@ -4,7 +4,10 @@ from discord.ext import commands
 from discord import app_commands
 import os, datetime
 
-from NekoMimi import reg as nreg
+import Tools.DBCables as cables
+
+sqldb= cables.Cables("celestia_datastore.db")
+sqldb.connect()
 
 class RolesCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -67,10 +70,10 @@ class RolesCog(commands.Cog):
 
             self.uc.pop(aidee)
             new_uc= ""
-            db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
             for entry in self.uc:
-                new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']}\n"
-            db.store("uc-rolemenu", new_uc)
+                new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']};"
+            new_uc= new_uc[:-1]
+            sqldb.set_g_uc(interaction.guild_id, new_uc)
             await interaction.response.send_message(f"the role **{selected_option}** has been removed successfully", ephemeral= True)
 
 
@@ -85,9 +88,8 @@ class RolesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_role_menu_admin(self, interaction: discord.Interaction):
-        registryName= "Celestia-Guilds-"+str(interaction.guild_id);
-        registry= nreg.Database(registryName);
-        if registry.query("uc-rolemenu") == "":
+        registry= sqldb.get_g_uc(interaction.guild_id);
+        if registry == "":
             setup= False;
         else:
             setup= True;
@@ -96,8 +98,8 @@ class RolesCog(commands.Cog):
             await interaction.response.send_message("[user-roles] the user role menu hasn't been setup for this guild", ephemeral= True);
             return;
         uc= []
-        get_uc= registry.query("uc-rolemenu")
-        for line in get_uc.split("\n"):
+        get_uc= registry
+        for line in get_uc.split(";"):
             try:
                 name, rid = line.strip().split(',')
                 uc.append({'role_name': name, 'role_id': int(rid)})
@@ -111,9 +113,8 @@ class RolesCog(commands.Cog):
     @role_commands.command(name= "user-roles", description= "Allows users to assign themselves roles from a menu")
     @app_commands.guild_only()
     async def __CMD_role_menu_user(self, interaction: discord.Interaction):
-        registryName= "Celestia-Guilds-"+str(interaction.guild_id);
-        registry= nreg.Database(registryName);
-        if registry.query("uc-rolemenu") == "":
+        registry= sqldb.get_g_uc(interaction.guild_id)
+        if registry == "":
             setup= False;
         else:
             setup= True;
@@ -122,8 +123,8 @@ class RolesCog(commands.Cog):
             await interaction.response.send_message("[user-roles] the user role menu hasn't been setup for this guild", ephemeral= True);
             return;
         uc= []
-        get_uc= registry.query("uc-rolemenu")
-        for line in get_uc.split("\n"):
+        get_uc= registry
+        for line in get_uc.split(";"):
             try:
                 name, rid = line.strip().split(',')
                 uc.append({'role_name': name, 'role_id': int(rid)})
@@ -139,9 +140,8 @@ class RolesCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_join_role_add(self, interaction: discord.Interaction, role: discord.Role):
         uc= []
-        db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
-        get_uc= db.query("uc-rolemenu")
-        for line in get_uc.splitlines():
+        get_uc= sqldb.get_g_uc(interaction.guild_id)
+        for line in get_uc.split(";"):
             try:
                 name, rid= line.strip().split(',')
                 uc.append({'role_name': name, 'role_id': int(rid)})
@@ -151,8 +151,9 @@ class RolesCog(commands.Cog):
         uc.append({'role_name': role.name, 'role_id': role.id})
         new_uc= ""
         for entry in uc:
-            new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']}\n"
-        db.store("uc-rolemenu", new_uc)
+            new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']};"
+        new_uc= new_uc[:-1]
+        sqldb.set_g_uc(interaction.guild_id, new_uc)
         await interaction.response.send_message(f"Done! the role {role.mention} has now been added to the user roles", ephemeral= True)
 
     @role_commands.command(name= "join-role", description= "Sets a role that all users that may join will get")
@@ -160,19 +161,14 @@ class RolesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_roles= True)
     async def __CMD_join_role(self, interaction: discord.Interaction, role: discord.Role):
-        regName= "Celestia-Guilds-"+str(interaction.guild_id)
-        rid= str(role.id)
-        db= nreg.Database(regName)
-        db.store("join-role", rid+":")
+        sqldb.set_g_jr(interaction.guild_id, role.id)
         await interaction.response.send_message(f"`{role.name}` has been set as the join role")
 
     @role_commands.command(name= "remove-join-role", description= "Removes the join role")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_roles= True)
     async def __CMD_join_role(self, interaction: discord.Interaction):
-        regName= "Celestia-Guilds-"+str(interaction.guild_id)
-        db= nreg.Database(regName)
-        db.store("join-role", "0:")
+        sqldb.set_g_jr(interaction.guild_id, 0)
         await interaction.response.send_message(f"Join role disabled.")
 
     @role_commands.command(name= "user-verify-welcome-message", description= "Sets the welcome message that a user gets after a successful verification")
@@ -180,11 +176,10 @@ class RolesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_verity_welcome(self, interaction: discord.Interaction, message: str):
-        db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
         message= message
         if message == "":
             message= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
-        db.store("welcome-msg", message)
+        sqldb.set_g_welcome(interaction.guild_id, message)
         await interaction.response.send_message("Done!\nI will now greet your members with the following message apon verification\n"+message, ephemeral= True)
 
     @role_commands.command(name= "user-verify", description= "A tool to grant users a role when they manage to verify successfully.")
@@ -193,14 +188,13 @@ class RolesCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator= True)
     @app_commands.describe(verifygrantrole= "The role to grant members who succeed in the verification.")
     async def __CMD_verity_cs(self, interaction: discord.Interaction, verifygrantrole: discord.Role, message: str= None):
-        default_msg= "Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role."
+        default_msg= f"Welcome to **{interaction.guild.name}**!\nPlease verify yourself to get access to the {verifygrantrole.mention} role."
         message= message or default_msg
         message= message.replace("[guild]", interaction.guild.name)
         message= message.replace("[role]", verifygrantrole.mention)
         message= message.replace("[owner]", interaction.guild.owner.mention)
         message= message.replace("<br>", "\n")
-        db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
-        db.store("verity-cs", str(verifygrantrole.id))
+        sqldb.set_g_verity(interaction.guild_id, verifygrantrole.id)
         await interaction.channel.send(f"✿  {message}", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
         await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
 
@@ -209,44 +203,26 @@ class RolesCog(commands.Cog):
         def __init__(self):
             super().__init__(label= "Verify", style= discord.ButtonStyle.green, custom_id= "CelestiaVerifyService")
 
-        def get_log_channel(self,guild):
-            base = 'dataStore/'
-            guild = str(guild)
-            file = open(base+guild+'.txt','r')
-            contents= file.read()
-            file.close()
-            channel = contents
-            if not "::" in channel:
-                with open(f"{base}{guild}.txt", "w") as buffer:
-                    buffer.write(f"{channel.strip()}::f;")
-                return (int(channel.strip()), False)
-            channel = int(channel.split("::", 1)[0])
-            botAllow= contents.split("::", 1)[1].split(";", 1)[0]
-            if botAllow == "f":
-                botAllow= False
-            else:
-                botAllow= True
-            return (channel, botAllow)
+        def get_log_channel(self, gid: int): # tuple(int, bool)
+            log_c= sqldb.get_g_mod(gid)
+            log_b= sqldb.get_g_bot(gid)
+            return (log_c, log_b)
 
-        def check_log_channel(self,guild):
-            guild = str(guild)
-            base = f'dataStore/{guild}.txt'
-            isRight = os.path.exists(base)
-            if isRight == True:
-                return True
-            else:
-                return False
+        def check_log_channel(self, gid: int)-> bool:
+            return sqldb.chk_g_mod(gid)
 
         async def callback(self, interaction: discord.Interaction):
-            db= nreg.Database(f"Celestia-Guilds-{interaction.guild_id}")
-            roleID= int(db.query("verity-cs"))
-            welcome_msg= db.query("welcome-msg")
+            roleID= int(sqldb.get_g_verity(interaction.guild_id))
+            welcome_msg= sqldb.get_g_welcome(interaction.guild_id)
             if welcome_msg == "":
                 welcome_msg= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
 
             welcome_msg= welcome_msg.replace("[user]", interaction.user.display_name)
             welcome_msg= welcome_msg.replace("[guild]", interaction.guild.name)
             role= interaction.guild.get_role(roleID)
+            if role in interaction.user.roles:
+                await interaction.response.defer()
+                return
             if role:
                 try:
                     await interaction.user.add_roles(role, reason= "Verified successfully")
@@ -291,9 +267,7 @@ class RolesCog(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if not member.bot:
-            regName= "Celestia-Guilds-"+str(member.guild.id)
-            db= nreg.Database(regName)
-            rid= int(db.query("join-role").split(":")[0])
+            rid= int(sqldb.get_g_verity(member.guild.id))
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
