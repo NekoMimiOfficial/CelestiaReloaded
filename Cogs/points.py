@@ -73,7 +73,7 @@ class PointsCog(commands.Cog):
 
     @app_commands.command(name= "bank", description= "access data about the points you save across all guilds.")
     @app_commands.describe(member= "Lookup points for a specific member")
-    async def __com_points(self, interaction: discord.Interaction, member: discord.Member= None):
+    async def __com_bank(self, interaction: discord.Interaction, member: discord.Member= None):
         member= member or interaction.user
         bank= sqldb.get_u_bank(member.id)
         if not bank:
