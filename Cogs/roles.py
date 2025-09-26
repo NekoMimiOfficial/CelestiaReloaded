@@ -291,8 +291,8 @@ class RolesCog(commands.Cog):
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
-                await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
-                if not role in member.roles:
+                # await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
+                if False:
                     await member.kick(reason= "Member did not verify within 24 hours")
                     em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
 
