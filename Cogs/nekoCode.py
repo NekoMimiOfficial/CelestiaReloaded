@@ -24,6 +24,12 @@ class Owner(commands.Cog):
                 embed = discord.Embed(color=0xEE90AC,title='Bash',description=emO)
                 await message.channel.send(embed=embed)
 
+    @commands.command()
+    @commands.is_owner()
+    async def download(self, ctx, d_file):
+        await ctx.message.delete()
+        await ctx.send(file=discord.File(d_file))
+
     @commands.command(name= "git")
     @commands.is_owner()
     async def git_push(self, ctx, *, msg):
