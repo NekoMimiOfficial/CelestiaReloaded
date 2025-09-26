@@ -4,7 +4,7 @@ from discord.ext import commands
 
 ALLOWED_DB_ADMINS= []
 
-class QueryCog(commands.Cog):
+class AdoptCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot= bot
         ALLOWED_DB_ADMINS.append(bot.owner_id)
@@ -27,4 +27,4 @@ class QueryCog(commands.Cog):
 
 ##############################################
 async def setup(bot: commands.Bot) -> None:
- 	await bot.add_cog(QueryCog(bot))
+ 	await bot.add_cog(AdoptCog(bot))
