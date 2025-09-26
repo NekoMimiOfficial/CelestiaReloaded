@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS "Guilds" (
 	"welcome_message"	TEXT,
 	"join_role"	INTEGER,
 	"shop_items"	TEXT,
+	"verity_drm"	INTEGER NOT NULL DEFAULT 86400,
 	PRIMARY KEY("gid")
 );
 """
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS "Users" (
 	"discordCredit"	INTEGER NOT NULL,
 	"display_name"	TEXT NOT NULL,
 	"last_message_ts"	INTEGER NOT NULL,
+	"avg_online"	INTEGER,
 	PRIMARY KEY("uid")
 );
 """
@@ -291,3 +293,16 @@ class Cables:
     def set_g_welcome(self, gid: int, msg: str):
         if self.cursor:
             self._cmd(f"UPDATE Guilds SET welcome_message = {msg} WHERE gid = {gid}")
+
+    def get_g_drm(self, gid: int):
+        if self.cursor:
+            self._cmd(f"SELECT verity_drm FROM Guilds WHERE gid = {gid}")
+            res= self.cursor.fetchall()
+            if len(res) < 1:
+                return 86400
+            return res[0][0]
+        return 86400
+
+    def set_g_drm(self, gid: int, drm: int):
+        if self.cursor:
+            self._cmd(f"UPDATE Guilds SET verity_drm = {drm} WHERE gid = {gid}")

@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from discord.app_commands.models import app_command_option_factory
 from discord.ext import commands
 from discord import app_commands
@@ -233,8 +234,9 @@ class RolesCog(commands.Cog):
                 try:
                     logchnlid, _= self.get_log_channel(interaction.guild_id)
                     logging= interaction.guild.get_channel(logchnlid)
-                    verbed= discord.Embed(color= 0xEE90AC, title= f"Member passed verification!", description= f"The member {interaction.user.mention} has successfully managed to complete the verification and has obtained the {role.mention} role!")
-                    verbed.set_thumbnail(url=interaction.user.display_avatar)
+                    verbed= discord.Embed(color= 0xa6d189, title= f"Member passed verification!", description= f"The member {interaction.user.mention} has successfully managed to complete the verification and has obtained the {role.mention} role!")
+                    if interaction.user.display_avatar:
+                        verbed.set_thumbnail(url=interaction.user.display_avatar)
 
                     verbed.add_field(name="Full name", value=interaction.user.global_name, inline=True)
                     verbed.add_field(name="Nickname", value=interaction.user.nick if hasattr(interaction.user, "nick") else "None", inline=True)
@@ -271,6 +273,24 @@ class RolesCog(commands.Cog):
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
+                await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
+                if not role in member.roles:
+                    await member.kick(reason= "Member did not verify within 24 hours")
+                    em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
+
+                    if interaction.user.display_avatar:
+                        em0.set_thumbnail(url=interaction.user.display_avatar)
+
+                    em0.add_field(name="Full name", value=interaction.user.global_name, inline=True)
+                    em0.add_field(name="Nickname", value=interaction.user.nick if hasattr(interaction.user, "nick") else "None", inline=True)
+                    em0.add_field(name= "UID", value= interaction.user.id)
+                    em0.add_field(name= "SID", value= interaction.user.name)
+                    em0.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
+                    em0.add_field(name="Joined this server", value=interaction.user.joined_at.date(), inline=True)
+                    em0.timestamp= datetime.datetime.now(datetime.timezone.utc)
+
+                    await member.guild.get_channel(int(sqldb.get_g_mod(member.guild.id))).send(embed= em0)
+
 
 
 async def setup(bot: commands.Bot)-> None:
