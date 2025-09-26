@@ -137,7 +137,7 @@ class PointsCog(commands.Cog):
                 points= int(sqldb.get_u_dc(message.author.id))
                 if points == 0:
                     points= 1
-                new_avg= int((calc + old_avg) / ((points + 1) / points))
+                new_avg= int(((old_avg * points) + calc) / (points + 1))
                 sqldb.set_u_tg(message.author.id, new_avg)
             
             user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name, message.guild.name)
