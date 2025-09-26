@@ -155,6 +155,9 @@ class ModCog(commands.Cog):
         if user.display_avatar:
             embed.set_thumbnail(url=user.display_avatar)
 
+        if user.display_banner:
+            embed.set_image(url= user.display_banner)
+
         lm= sqldb.get_u_last(int(user.id))
         full_ts= f"<t:{int(lm)}:R>"
         if lm == 0 or not lm:

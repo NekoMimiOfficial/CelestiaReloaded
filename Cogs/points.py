@@ -94,7 +94,7 @@ class PointsCog(commands.Cog):
         if int(available) < amount:
             await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
             return
-        sqldb.pay(interaction.user.id, user.id, amount)
+        sqldb.pay(interaction.user.id, user.id, amount, user.display_name)
         embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"You have successfully paid {user.mention} `{amount}` <:CelestialPoints:1412891132559495178>")
         if interaction.user.display_avatar:
             embed.set_thumbnail(url=interaction.user.display_avatar)

@@ -191,6 +191,7 @@ class Cables:
             if len(res) < 1:
                 return 0
             return int(res[0][0])
+        return 0
 
     def get_g_bot(self, gid: int):
         if self.cursor:
@@ -332,7 +333,8 @@ class Cables:
         if self.cursor:
             self._cmd(f"UPDATE Users SET avg_online = {ts} WHERE uid = {uid}")
 
-    def pay(self, uid_s: int, uid_t: int, pts: int):
+    def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str):
         if self.cursor:
+            self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid_t, 20, 50, 0, dname_t, 0))
             self._cmd(f"UPDATE Users SET points = points - {pts} WHERE uid = {uid_s}")
             self._cmd(f"UPDATE Users SET points = points + {pts} WHERE uid = {uid_t}")
