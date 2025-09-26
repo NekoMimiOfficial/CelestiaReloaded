@@ -294,6 +294,7 @@ class Cables:
             if not res[0][0]:
                 return 0
             return int(res[0][0])
+        return 0
 
     def set_g_verity(self, gid: int, rid: int):
         if self.cursor:

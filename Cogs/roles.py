@@ -1,8 +1,8 @@
 import discord
-import asyncio
 from discord.app_commands.models import app_command_option_factory
 from discord.ext import commands
 from discord import app_commands
+import multiprocessing, time
 import os, datetime
 
 import Tools.DBCables as cables
@@ -237,9 +237,6 @@ class RolesCog(commands.Cog):
             if welcome_msg == "":
                 welcome_msg= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
 
-            print(welcome_msg)
-            print(roleID)
-
             welcome_msg= welcome_msg.replace("[user]", interaction.user.display_name)
             welcome_msg= welcome_msg.replace("[guild]", interaction.guild.name)
             role= interaction.guild.get_role(roleID)
@@ -284,16 +281,20 @@ class RolesCog(commands.Cog):
         except Exception as e:
             print(f"[ fail ] attaching Verifier: {e}")
 
-    async def auto_clean(self, member: discord.Member, role: discord.Role):
-        if member.bot:
+    async def auto_clean(self, member: discord.Member, role: int):
+        if sqldb.get_g_verity(member.guild.id) == 0:
             return
 
-        await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
+        g_role= member.guild.get_role(role)
+        if not g_role:
+            return
+
+        time.sleep(int(sqldb.get_g_drm(member.guild.id)))
         member_n= member.guild.get_member(member.id)
         if member_n:
             member= member_n
 
-        if role in member.roles:
+        if not g_role in member.roles:
             await member.kick(reason= "Member did not verify within 24 hours")
             em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
 
@@ -318,7 +319,8 @@ class RolesCog(commands.Cog):
             if role:
                 await member.add_roles(role, reason="Join role assigned")
                 
-            self.bot.loop.create_task(self.auto_clean(member, member.guild.get_role(int(sqldb.get_g_verity(member.guild.id)))))
+            proc= multiprocessing.Process(target= self.auto_clean, args= (member, int(sqldb.get_g_verity(member.guild.id))))
+            proc.run()
 
 
 
