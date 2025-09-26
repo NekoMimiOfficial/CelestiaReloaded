@@ -88,17 +88,6 @@ class Cables:
                 raise OSError
 
         except sqlite3.OperationalError as e:
-            if "database is locked" in str(e):
-                while 1:
-                    try:
-                        if values:
-                            self.cursor.execute(cmd, values)
-                            self.conn.commit()
-                        else:
-                            self.cursor.execute(cmd)
-                        break
-                    except:
-                        pass
             print(f"[ fail ] sqlite error: {e}")
 
         except Exception as e:
