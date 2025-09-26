@@ -214,6 +214,8 @@ class Cables:
             res= self.cursor.fetchall()
             if len(res) < 1:
                 return 0
+            if not res[0][0]:
+                return 0
             return int(res[0][0])
 
     def set_g_mod(self, gid: int, cid: int):
@@ -221,9 +223,13 @@ class Cables:
             self._cmd(f"UPDATE Guilds SET modlog = {cid} WHERE gid = {gid}")
 
     def chk_g_mod(self, gid: int):
-        res= self.get_g_mod(gid)
-        if res and not res == 0:
-            return True
+        try:
+            res= self.get_g_mod(gid)
+            if res:
+                if not res == 0:
+                    return True
+        except:
+            return False
         return False
 
     def get_u_last(self, uid: int):
