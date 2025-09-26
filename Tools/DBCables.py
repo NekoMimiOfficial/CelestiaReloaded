@@ -331,3 +331,8 @@ class Cables:
     def set_u_tg(self, uid: int, ts: int):
         if self.cursor:
             self._cmd(f"UPDATE Users SET avg_online = {ts} WHERE uid = {uid}")
+
+    def pay(self, uid_s: int, uid_t: int, pts: int):
+        if self.cursor:
+            self._cmd(f"UPDATE Users SET points = points - {pts} WHERE uid = {uid_s}")
+            self._cmd(f"UPDATE Users SET points = points + {pts} WHERE uid = {uid_t}")

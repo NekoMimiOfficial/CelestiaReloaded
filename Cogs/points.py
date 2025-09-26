@@ -86,6 +86,21 @@ class PointsCog(commands.Cog):
         em0.add_field(name= "Next level", value= f"`{to_next_lvl(bank)}` <:CelestialPoints:1412891132559495178>")
         await interaction.response.send_message(embed= em0)
 
+    @app_commands.command(name= "pay", description= "Pay a user money/Transfer money into another user's account.")
+    @app_commands.describe(amonut= "Amount to pay")
+    @app_commands.describe(user= "The user to pay to")
+    async def __CMD_pay(self, interaction: discord.Interaction,user: discord.User, amount: int):
+        available= sqldb.get_u_bank(interaction.user.id)
+        if int(available) < amount:
+            await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
+            return
+        sqldb.pay(interaction.user.id, user.id, amount)
+        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"You have successfully paid {user.mention} `{amount}` <:CelestialPoints:1412891132559495178>")
+        if interaction.user.display_avatar:
+            embed.set_thumbnail(url=interaction.user.display_avatar)
+        embed.timestamp= interaction.created_at.now()
+        await interaction.response.send_message(embed= embed)
+
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
     @app_commands.guild_only()
     async def __com_lb(self, interaction: discord.Interaction):
