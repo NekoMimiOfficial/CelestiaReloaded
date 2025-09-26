@@ -336,5 +336,5 @@ class Cables:
     def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts):
         if self.cursor:
             self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid_t, 20, 50, 0, dname_t, ts))
-            self._cmd(f"UPDATE Users SET points = points - {pts} WHERE uid = {uid_s}")
-            self._cmd(f"UPDATE Users SET points = points + {pts} WHERE uid = {uid_t}")
+            self._cmd(f"UPDATE Users SET bank = bank - {pts} WHERE uid = {uid_s}")
+            self._cmd(f"UPDATE Users SET bank = bank + {pts} WHERE uid = {uid_t}")
