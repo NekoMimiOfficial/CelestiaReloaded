@@ -292,7 +292,7 @@ class Cables:
             if len(res) < 1:
                 return 0
             if not res[0][0]:
-                res[0][0]= 0
+                return 0
             return int(res[0][0])
 
     def set_g_verity(self, gid: int, rid: int):
@@ -306,7 +306,7 @@ class Cables:
             if len(res) < 1:
                 return ""
             if not res[0][0]:
-                res[0][0]= ""
+                return ""
             if res[0][0]:
                 return res[0][0]
             return ""
