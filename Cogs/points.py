@@ -87,7 +87,7 @@ class PointsCog(commands.Cog):
         await interaction.response.send_message(embed= em0)
 
     @app_commands.command(name= "pay", description= "Pay a user money/Transfer money into another user's account.")
-    @app_commands.describe(amonut= "Amount to pay")
+    @app_commands.describe(amount= "Amount to pay")
     @app_commands.describe(user= "The user to pay to")
     async def __CMD_pay(self, interaction: discord.Interaction,user: discord.User, amount: int):
         available= sqldb.get_u_bank(interaction.user.id)
