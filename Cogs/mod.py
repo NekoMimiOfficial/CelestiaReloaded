@@ -146,7 +146,7 @@ class ModCog(commands.Cog):
             user= interaction.user
 
         show_roles = ""
-        for role in user.roles:
+        for role in user.roles[::-1]:
             if role.name == "@everyone":
                 continue
             show_roles= show_roles+ f"`[{role.name}]` "
@@ -156,7 +156,7 @@ class ModCog(commands.Cog):
             embed.set_thumbnail(url=user.display_avatar)
 
         if user.display_banner:
-            embed.set_image(url= user.display_banner)
+            embed.set_image(url= user.display_banner.url)
 
         lm= sqldb.get_u_last(int(user.id))
         full_ts= f"<t:{int(lm)}:R>"

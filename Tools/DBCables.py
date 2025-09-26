@@ -121,9 +121,13 @@ class Cables:
     def init_guild(self, gid: int, gname: str):
         self._inserter("Guilds", ("gid", "identifier"), (gid, gname))
 
+    def denull(self, uid: int, ts):
+        self._cmd(f"UPDATE Users SET first_added_ts = {ts} WHERE uid = {uid} AND first_added_ts IS NULL")
+
     def init_user(self, uid: int, gid: int, dname: str, ts):
-        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid, 20, 50, 0, dname, ts))
+        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts", "first_added_ts"), (uid, 20, 50, 0, dname, ts, ts))
         self._inserter("Points", ("uid", "gid", "points", "display_name", "timestamp"), (uid, gid, 0, dname, ts))
+        self.denull(uid, ts)
 
     def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: int):
         "This function should ONLY be used for the migrator, and that only runs ONCE on an EMPTY db table"
