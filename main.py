@@ -1,13 +1,22 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 
+import random
 import asyncio
-import os
+import os, sys
+import traceback
 
 from NekoMimi import utils as nm
 from NekoMimi import reg
 import Tools.DBCables as cables
 
+def randstrgen():
+    big_string= "1s2a3f4b5x6c7z8d9y0e"
+    final= ""
+    for i in range(8):
+        final += random.choice(big_string)
+    return final
 
 print(nm.figlet("Celestia", "larry3d"))
 
@@ -29,6 +38,42 @@ async def on_ready():
     except Exception as e:
         print(e)
         exit(22)
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(f'Ignoring exception in event {event}', file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
+
+@bot.event
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    err_id= randstrgen()
+    print(f"--- Unhandled Command Error ({err_id}) ---", file=sys.stderr)
+    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+    print("-------------------------------------------", file=sys.stderr)
+
+    await ctx.send(f"An error occured, please report this to the devs, ERR ID: {err_id}")
+
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    err_id= randstrgen()
+    if interaction.response.is_done():
+        send_func = interaction.followup.send
+    else:
+        send_func = interaction.response.send_message
+
+    if isinstance(error, app_commands.MissingPermissions):
+        await send_func(
+            f"You do not have the required permissions (`{', '.join(error.missing_permissions)}`) to use this command.",
+            ephemeral=True
+        )
+        return
+
+    else:
+        print(f"--- Unhandled Slash Command Error ({err_id}) ---", file=sys.stderr)
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+        print("-------------------------------------", file=sys.stderr)
+
+        await send_func(f"An error occured, please report this to the devs, ERR ID: {err_id}", ephemeral= True)
 
 
 #import cogs
