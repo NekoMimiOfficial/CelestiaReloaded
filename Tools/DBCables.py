@@ -121,9 +121,9 @@ class Cables:
     def init_guild(self, gid: int, gname: str):
         self._inserter("Guilds", ("gid", "identifier"), (gid, gname))
 
-    def init_user(self, uid: int, gid: int, dname: str):
-        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid, 20, 50, 0, dname, 0))
-        self._inserter("Points", ("uid", "gid", "points", "display_name", "timestamp"), (uid, gid, 0, dname, 0))
+    def init_user(self, uid: int, gid: int, dname: str, ts):
+        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid, 20, 50, 0, dname, ts))
+        self._inserter("Points", ("uid", "gid", "points", "display_name", "timestamp"), (uid, gid, 0, dname, ts))
 
     def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: int):
         "This function should ONLY be used for the migrator, and that only runs ONCE on an EMPTY db table"
@@ -157,7 +157,7 @@ class Cables:
     def inc_gu_points(self, gid: int, uid: int, ts: int, ptr: int, dname: str):
         if self.cursor:
             try:
-                self.init_user(uid, gid, dname)
+                self.init_user(uid, gid, dname, ts)
                 self._cmd(f"UPDATE Points SET points = points + ?, timestamp = ?, display_name = ? WHERE uid = ? AND gid = ?", (str(ptr), str(ts), str(dname), str(uid), str(gid)))
                 self._cmd(f"UPDATE Users SET bank = bank + ?, discordCredit = discordCredit + ?, last_message_ts = ?, display_name = ? WHERE uid = ?", (str(ptr), str(ptr), str(ts), str(dname), str(uid)))
                 return True
@@ -333,8 +333,8 @@ class Cables:
         if self.cursor:
             self._cmd(f"UPDATE Users SET avg_online = {ts} WHERE uid = {uid}")
 
-    def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str):
+    def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts):
         if self.cursor:
-            self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid_t, 20, 50, 0, dname_t, 0))
+            self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid_t, 20, 50, 0, dname_t, ts))
             self._cmd(f"UPDATE Users SET points = points - {pts} WHERE uid = {uid_s}")
             self._cmd(f"UPDATE Users SET points = points + {pts} WHERE uid = {uid_t}")

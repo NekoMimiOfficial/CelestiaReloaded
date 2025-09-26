@@ -40,7 +40,7 @@ def time_chatting(p: int):
     return f"{hours}:{mins%60}:{sec%60}"
 
 def user_xp(ts, uid, gid, dname, gname):
-    sqldb.init_guild(gid, gname)
+    sqldb.init_guild(gid, gname, ts)
     old_ts= sqldb.get_gu_ts(gid, uid)
     if (ts - old_ts) > TIME:
         sqldb.inc_gu_points(gid, uid, ts, 1, dname)
@@ -94,7 +94,7 @@ class PointsCog(commands.Cog):
         if int(available) < amount:
             await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
             return
-        sqldb.pay(interaction.user.id, user.id, amount, user.display_name)
+        sqldb.pay(interaction.user.id, user.id, amount, user.display_name, interaction.created_at.timestamp())
         embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"You have successfully paid {user.mention} `{amount}` <:CelestialPoints:1412891132559495178>")
         if interaction.user.display_avatar:
             embed.set_thumbnail(url=interaction.user.display_avatar)
