@@ -176,7 +176,14 @@ class ModCog(commands.Cog):
         tg= sqldb.get_u_tg(int(user.id))
         if not tg or tg == 0:
             calc_tg= "Unknown"
-        calc_tg= format_seconds(int(tg))
+
+        ts= int(interaction.created_at.timestamp())
+        old_ts= int(sqldb.get_u_last(user.id))
+        calc= ts - old_ts
+        old_avg= int(tg)
+        points= int(sqldb.get_u_dc(user.id))
+        new_avg= int((calc + old_avg) / ((points + 1) / points))
+        calc_tg= format_seconds(int(new_avg))
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
