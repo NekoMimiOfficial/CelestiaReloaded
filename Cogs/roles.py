@@ -267,7 +267,7 @@ class RolesCog(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if not member.bot:
-            rid= int(sqldb.get_g_verity(member.guild.id))
+            rid= int(sqldb.get_g_mod(member.guild.id))
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
