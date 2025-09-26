@@ -237,6 +237,9 @@ class RolesCog(commands.Cog):
             if welcome_msg == "":
                 welcome_msg= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
 
+            print(welcome_msg)
+            print(roleID)
+
             welcome_msg= welcome_msg.replace("[user]", interaction.user.display_name)
             welcome_msg= welcome_msg.replace("[guild]", interaction.guild.name)
             role= interaction.guild.get_role(roleID)
@@ -244,11 +247,7 @@ class RolesCog(commands.Cog):
                 await interaction.response.defer()
                 return
             if role:
-                try:
-                    await interaction.user.add_roles(role, reason= "Verified successfully")
-                except Exception as e:
-                    await interaction.response.send_message(f"Internal error: {e}\n\nPlease report this to the devs")
-                    return
+                await interaction.user.add_roles(role, reason= "Verified successfully")
 
                 try:
                     logchnlid, _= self.get_log_channel(interaction.guild_id)

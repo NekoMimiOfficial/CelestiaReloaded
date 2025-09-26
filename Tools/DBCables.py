@@ -313,7 +313,7 @@ class Cables:
 
     def set_g_welcome(self, gid: int, msg: str):
         if self.cursor:
-            self._cmd(f"UPDATE Guilds SET welcome_message = {msg} WHERE gid = {gid}")
+            self._cmd(f"UPDATE Guilds SET welcome_message = \"{msg}\" WHERE gid = {gid}")
 
     def get_g_drm(self, gid: int):
         if self.cursor:
