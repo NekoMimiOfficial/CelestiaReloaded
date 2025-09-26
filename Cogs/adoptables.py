@@ -2,12 +2,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-ALLOWED_DB_ADMINS= []
+ALLOWED_DB_ADMINS= [770344920510103573, ]
 
 class AdoptCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot= bot
-        ALLOWED_DB_ADMINS.append(bot.owner_id)
 ##############################################
 
     adopt_commands= app_commands.Group(name= "adoptables", description= "Your adoptable characters, as cute as they can be")
