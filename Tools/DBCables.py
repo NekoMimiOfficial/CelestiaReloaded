@@ -1,4 +1,6 @@
 import sqlite3
+import time
+import multiprocessing
 
 DB_BUILD_CMD1= """\
 CREATE TABLE IF NOT EXISTS "Guilds" (
@@ -76,6 +78,19 @@ class Cables:
         if self.conn:
             self.conn.close()
 
+    def _retry(self, cmd: str, values= None):
+        i= 0
+        while i < 50:
+            try:
+                self._cmd(cmd, values)
+                break
+            except:
+                i += 1
+                time.sleep(5)
+
+        if not i < 50:
+            print("[ fail ] sqlite database locked for more than 50 tries, bailing out...")
+
     def _cmd(self, cmd: str, values= None):
         try:
             if self.cursor and self.conn:
@@ -88,7 +103,11 @@ class Cables:
                 raise OSError
 
         except sqlite3.OperationalError as e:
-            print(f"[ fail ] sqlite error: {e}")
+            if "is locked" in str(e):
+                ret_thread= multiprocessing.Process(target= self._retry, args= (cmd, values))
+                ret_thread.run()
+            else:
+                print(f"[ fail ] sqlite error: {e}")
 
         except Exception as e:
             print(f"[ fail ] General error: {e}")

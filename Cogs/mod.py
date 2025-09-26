@@ -196,13 +196,10 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Last Message", value= full_ts, inline= True)
         embed.add_field(name= "Standing", value= "Regular user", inline= True)
         embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
-        embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>", inline= True)
+        embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
         embed.add_field(name="Roles", value=show_roles, inline=False)
 
         await interaction.response.send_message(embed=embed)
-
-    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
-        print("[ fail ] discord command error:", error)
 
     @app_commands.command(name= "guild", description= "Give information about the current guild")
     @commands.guild_only()
