@@ -10,6 +10,15 @@ import Tools.DBCables as cables
 sqldb= cables.Cables("celestia_datastore.db")
 sqldb.connect()
 
+def format_seconds(p: int):
+    sec= p
+    mins= 0
+    hours= 0
+    if sec >= 60:
+        mins= int(sec/60)
+    if mins >= 60:
+        hours= int(mins/60)
+
 class RolesCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot= bot;
@@ -198,6 +207,14 @@ class RolesCog(commands.Cog):
         sqldb.set_g_verity(interaction.guild_id, verifygrantrole.id)
         await interaction.channel.send(f"✿  {message}", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
         await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
+
+    @role_commands.command(name= "kick-timeout", description= "Sets the time in seconds to wait before kicking the user if they did not verify yet")
+    @app_commands.guild_only()
+    @app_commands.describe(wait= "Time to wait before kicking (in seconds)")
+    @app_commands.checks.has_permissions(administrator= True)
+    async def __CMD_verity_drm(self, interaction: discord.Interaction, wait: int= 86400):
+        sqldb.set_g_drm(interaction.guild_id, wait)
+        await interaction.response.send_message(f"Updated timeout to `{format_seconds(wait)}`", ephemeral= True)
 
 
     class VerificationButton(discord.ui.Button):
