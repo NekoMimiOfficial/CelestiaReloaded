@@ -284,6 +284,32 @@ class RolesCog(commands.Cog):
         except Exception as e:
             print(f"[ fail ] attaching Verifier: {e}")
 
+    async def auto_clean(self, member: discord.Member, role: discord.Role):
+        if member.bot:
+            return
+
+        await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
+        member_n= member.guild.get_member(member.id)
+        if member_n:
+            member= member_n
+
+        if role in member.roles:
+            await member.kick(reason= "Member did not verify within 24 hours")
+            em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
+
+            if member.display_avatar:
+                em0.set_thumbnail(url= member.display_avatar)
+
+            em0.add_field(name="Full name", value=member.global_name, inline=True)
+            em0.add_field(name="Nickname", value=member.nick if hasattr(member, "nick") else "None", inline=True)
+            em0.add_field(name= "UID", value= member.id)
+            em0.add_field(name= "SID", value= member.name)
+            em0.add_field(name="Account created", value=member.created_at.date(), inline=True)
+            em0.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
+            em0.timestamp= datetime.datetime.now(datetime.timezone.utc)
+
+            await member.guild.get_channel(int(sqldb.get_g_mod(member.guild.id))).send(embed= em0)
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if not member.bot:
@@ -291,23 +317,8 @@ class RolesCog(commands.Cog):
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
-                # await asyncio.sleep(int(sqldb.get_g_drm(member.guild.id)))
-                if False:
-                    await member.kick(reason= "Member did not verify within 24 hours")
-                    em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
-
-                    if interaction.user.display_avatar:
-                        em0.set_thumbnail(url=interaction.user.display_avatar)
-
-                    em0.add_field(name="Full name", value=interaction.user.global_name, inline=True)
-                    em0.add_field(name="Nickname", value=interaction.user.nick if hasattr(interaction.user, "nick") else "None", inline=True)
-                    em0.add_field(name= "UID", value= interaction.user.id)
-                    em0.add_field(name= "SID", value= interaction.user.name)
-                    em0.add_field(name="Account created", value=interaction.user.created_at.date(), inline=True)
-                    em0.add_field(name="Joined this server", value=interaction.user.joined_at.date(), inline=True)
-                    em0.timestamp= datetime.datetime.now(datetime.timezone.utc)
-
-                    await member.guild.get_channel(int(sqldb.get_g_mod(member.guild.id))).send(embed= em0)
+                
+            self.bot.loop.create_task(self.auto_clean(member, member.guild.get_role(int(sqldb.get_g_verity(member.guild.id)))))
 
 
 
