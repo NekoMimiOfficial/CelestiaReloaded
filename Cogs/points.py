@@ -135,6 +135,8 @@ class PointsCog(commands.Cog):
             if calc > TIME:
                 old_avg= int(sqldb.get_u_tg(message.author.id))
                 points= int(sqldb.get_u_dc(message.author.id))
+                if points == 0:
+                    points= 1
                 new_avg= int((calc + old_avg) / ((points + 1) / points))
                 sqldb.set_u_tg(message.author.id, new_avg)
             

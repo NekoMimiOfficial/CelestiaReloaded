@@ -41,15 +41,17 @@ async def on_ready():
 
 @bot.event
 async def on_error(event, *args, **kwargs):
-    print(f'Ignoring exception in event {event}', file=sys.stderr)
+    err_id= randstrgen()
+    print(f'[ fail ] Ignoring exception with ERR ID ({err_id}) in event {event}', file=sys.stderr)
     traceback.print_exc(file=sys.stderr)
+    print("-------------------------------------------------------------------")
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     err_id= randstrgen()
     print(f"[ fail ] Unhandled Command Error ({err_id})", file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-    print("--------------------------------------------", file=sys.stderr)
+    print("-------------------------------------------", file=sys.stderr)
 
     await ctx.send(f"An error occured, please report this to the devs, ERR ID: {err_id}")
 
@@ -71,7 +73,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     else:
         print(f"[ fail ] Unhandled Slash Command Error ({err_id})", file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-        print("--------------------------------------------------", file=sys.stderr)
+        print("-------------------------------------------------", file=sys.stderr)
 
         await send_func(f"An error occured, please report this to the devs, ERR ID: {err_id}", ephemeral= True)
 
