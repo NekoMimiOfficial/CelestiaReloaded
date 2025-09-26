@@ -281,7 +281,7 @@ class RolesCog(commands.Cog):
         except Exception as e:
             print(f"[ fail ] attaching Verifier: {e}")
 
-    async def auto_clean(self, member: discord.Member, role: int):
+    def auto_clean(self, member: discord.Member, role: int):
         if sqldb.get_g_verity(member.guild.id) == 0:
             return
 
