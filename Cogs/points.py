@@ -40,7 +40,7 @@ def time_chatting(p: int):
     return f"{hours}:{mins%60}:{sec%60}"
 
 def user_xp(ts, uid, gid, dname, gname):
-    sqldb.init_guild(gid, gname, ts)
+    sqldb.init_guild(gid, gname)
     old_ts= sqldb.get_gu_ts(gid, uid)
     if (ts - old_ts) > TIME:
         sqldb.inc_gu_points(gid, uid, ts, 1, dname)
