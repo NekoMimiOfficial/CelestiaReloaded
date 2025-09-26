@@ -6,3 +6,4 @@ pyvenv.cfg
 Uptime
 dataStore
 discord.py
+celestia_datastore.db
