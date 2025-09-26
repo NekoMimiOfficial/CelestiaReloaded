@@ -117,7 +117,7 @@ class PointsCog(commands.Cog):
             ts= int(message.created_at.timestamp())
             old_ts= int(sqldb.get_u_last(message.author.id))
             calc= ts - old_ts
-            old_avg= int(sqldb.set_u_tg(message.author.id))
+            old_avg= int(sqldb.get_u_tg(message.author.id))
             new_avg= int((calc + old_avg) / 2)
             sqldb.set_u_tg(message.author.id, new_avg)
             

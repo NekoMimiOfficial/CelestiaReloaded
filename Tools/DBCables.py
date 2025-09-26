@@ -129,6 +129,7 @@ class Cables:
             if len(res) < 1:
                 return 0
             return res[0][0]
+        return 0
 
     def get_gu_lb(self, gid: int):
         if self.cursor:
@@ -313,6 +314,8 @@ class Cables:
             self._cmd(f"SELECT avg_online FROM Users WHERE uid = {uid}")
             res= self.cursor.fetchall()
             if len(res) < 1:
+                return 0
+            if not res[0][0]:
                 return 0
             return res[0][0]
         return 0

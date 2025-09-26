@@ -45,6 +45,17 @@ def time_chatting(p: int):
 
     return f"{hours}:{mins%60}:{sec%60}"
 
+def format_seconds(p: int):
+    sec= p
+    mins= 0
+    hours= 0
+    if sec >= 60:
+        mins= int(sec/60)
+    if mins >= 60:
+        hours= int(mins/60)
+
+    return f"{hours}:{mins%60}:{sec%60}"
+
 def scparse(sc: int):
     if sc >= 95:
         return "Perfect"
@@ -159,10 +170,13 @@ class ModCog(commands.Cog):
         scl= int(scl)
         scp= scparse(scl)
 
+        upts= sqldb.get_gu_pts(int(user.id), int(user.guild.id))
+        pointo= str(upts)
+
         tg= sqldb.get_u_tg(int(user.id))
         if not tg or tg == 0:
             calc_tg= "Unknown"
-        calc_tg= format_seconds(tg)
+        calc_tg= format_seconds(int(tg))
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
@@ -175,10 +189,13 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Last Message", value= full_ts, inline= True)
         embed.add_field(name= "Standing", value= "Regular user", inline= True)
         embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
-        embed.add_field(name= "Server points", value= f"`{sqldb.get_gu_pts(user.id, user.guild.id)}` <:CelestialPoints:1412891132559495178>")
+        embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>", inline= True)
         embed.add_field(name="Roles", value=show_roles, inline=False)
 
         await interaction.response.send_message(embed=embed)
+
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        print("[ fail ] discord command error:", error)
 
     @app_commands.command(name= "guild", description= "Give information about the current guild")
     @commands.guild_only()

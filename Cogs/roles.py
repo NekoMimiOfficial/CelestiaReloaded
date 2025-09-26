@@ -19,6 +19,8 @@ def format_seconds(p: int):
     if mins >= 60:
         hours= int(mins/60)
 
+    return f"{hours}:{mins%60}:{sec%60}"
+
 class RolesCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot= bot;
