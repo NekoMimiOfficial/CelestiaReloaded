@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 from discord.webhook.async_ import interaction_response_params
 
+from Cogs.roles import format_seconds
 import Tools.DBCables as cables
 
 sqldb= cables.Cables("celestia_datastore.db")
@@ -158,6 +159,11 @@ class ModCog(commands.Cog):
         scl= int(scl)
         scp= scparse(scl)
 
+        tg= sqldb.get_u_tg(int(user.id))
+        if not tg or tg == 0:
+            calc_tg= "Unknown"
+        calc_tg= format_seconds(tg)
+
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
         embed.add_field(name= "UID", value= user.id)
@@ -167,6 +173,9 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Social Score", value= f"`{scl} | {scp}`", inline= True)
         embed.add_field(name= "Discord Credit", value= f"`{dcl} | {time_chatting(dcl)}`\n`lvl: {lvl(dcl)}`", inline= True)
         embed.add_field(name= "Last Message", value= full_ts, inline= True)
+        embed.add_field(name= "Standing", value= "Regular user", inline= True)
+        embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
+        embed.add_field(name= "Server points", value= f"`{sqldb.get_gu_pts(user.id, user.guild.id)}` <:CelestialPoints:1412891132559495178>")
         embed.add_field(name="Roles", value=show_roles, inline=False)
 
         await interaction.response.send_message(embed=embed)

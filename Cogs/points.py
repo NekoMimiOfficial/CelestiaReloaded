@@ -113,7 +113,16 @@ class PointsCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if not message.author.bot:
+
+            ts= int(message.created_at.timestamp())
+            old_ts= int(sqldb.get_u_last(message.author.id))
+            calc= ts - old_ts
+            old_avg= int(sqldb.set_u_tg(message.author.id))
+            new_avg= int((calc + old_avg) / 2)
+            sqldb.set_u_tg(message.author.id, new_avg)
+            
             user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name, message.guild.name)
+            
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):

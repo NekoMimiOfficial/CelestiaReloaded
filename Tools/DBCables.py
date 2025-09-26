@@ -223,6 +223,7 @@ class Cables:
             if len(res) < 1:
                 return 0
             return res[0][0]
+        return 0
 
     def get_u_dc(self, uid: int):
         if self.cursor:
@@ -306,3 +307,16 @@ class Cables:
     def set_g_drm(self, gid: int, drm: int):
         if self.cursor:
             self._cmd(f"UPDATE Guilds SET verity_drm = {drm} WHERE gid = {gid}")
+
+    def get_u_tg(self, uid: int):
+        if self.cursor:
+            self._cmd(f"SELECT avg_online FROM Users WHERE uid = {uid}")
+            res= self.cursor.fetchall()
+            if len(res) < 1:
+                return 0
+            return res[0][0]
+        return 0
+
+    def set_u_tg(self, uid: int, ts: int):
+        if self.cursor:
+            self._cmd(f"UPDATE Users SET avg_online = {ts} WHERE uid = {uid}")
