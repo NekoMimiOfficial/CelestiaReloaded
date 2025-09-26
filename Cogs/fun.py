@@ -8,16 +8,18 @@ from discord.ext import commands
 import Tools.DBCables as cables
 
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
-def getScr(uid: int):
-    return int(sqldb.get_u_bank(uid))
+async def getScr(uid: int):
+    await sqldb.connect()
+    res= int(await sqldb.get_u_bank(uid))
+    return res
 
-def writeScr(uid: int, amt: int):
+async def writeScr(uid: int, amt: int):
+    await sqldb.connect()
     if amt > 0:
-        sqldb.inc_u_bank(uid, amt)
+        await sqldb.inc_u_bank(uid, amt)
     else:
-        sqldb.dec_u_bank(uid, amt*-1)
+        await sqldb.dec_u_bank(uid, amt*-1)
 
 class Fun_Commands(commands.Cog):
     def __init__(self, bot):
@@ -62,16 +64,16 @@ class Fun_Commands(commands.Cog):
         c = random.choice(emojis)
 
         slotmachine = f"**[ {a} {b} {c} ]\n{interaction.user.display_name}**,"
-        points = getScr(int(interaction.user.id))
+        points = await getScr(int(interaction.user.id))
         if points > 4:
             if (a == b == c):
-                writeScr(int(interaction.user.id), 100)
+                await writeScr(int(interaction.user.id), 100)
                 await interaction.response.send_message(f"{slotmachine} All matching, you **won** `100` <:CelestialPoints:1412891132559495178>! 🎉")
             elif (a == b) or (a == c) or (b == c):
-                writeScr(int(interaction.user.id), 10)
+                await writeScr(int(interaction.user.id), 10)
                 await interaction.response.send_message(f"{slotmachine} 2 in a row, you **won** `10` <:CelestialPoints:1412891132559495178>! 🎉")
             else:
-                writeScr(int(interaction.user.id), -5)
+                await writeScr(int(interaction.user.id), -5)
                 await interaction.response.send_message(f"{slotmachine} No match, you **lost** `5` <:CelestialPoints:1412891132559495178> 😢")
         else:
             await interaction.response.send_message(embed=discord.Embed(color=0xEE90AC,description="You must have at least `5` <:CelestialPoints:1412891132559495178>, keep talking!"), ephemeral= True)

@@ -6,16 +6,18 @@ import asyncio
 
 import Tools.DBCables as cables
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
-def getScr(uid: int):
-    return int(sqldb.get_u_bank(uid))
+async def getScr(uid: int):
+    await sqldb.connect()
+    res= int(await sqldb.get_u_bank(uid))
+    return res
 
-def writeScr(uid: int, amt: int):
+async def writeScr(uid: int, amt: int):
+    await sqldb.connect()
     if amt > 0:
-        sqldb.inc_u_bank(uid, amt)
+        await sqldb.inc_u_bank(uid, amt)
     else:
-        sqldb.dec_u_bank(uid, amt*-1)
+        await sqldb.dec_u_bank(uid, amt*-1)
 
 class Blackjack:
     def __init__(self, gid, uid, money):
@@ -26,7 +28,7 @@ class Blackjack:
         self.uid= int(uid)
         self.gid= int(gid)
         self.bet= money
-        self.bank= getScr(int(uid))
+        self.bank= 0
 
     def create_deck(self):
         """Creates and shuffles a standard 52-card deck."""
@@ -73,10 +75,11 @@ class Blackjack:
                 cards.append(f"{card['rank']}{card['suit']}")
             return " | ".join(cards)
 
-    def start_game(self):
+    async def start_game(self):
+        self.bank= int(await getScr(self.uid))
         if self.bet*2 > self.bank:
             return False
-        writeScr(self.uid, self.bet*-1)
+        await writeScr(self.uid, self.bet*-1)
         self.hit(self.player_hand)
         self.hit(self.dealer_hand)
         self.hit(self.player_hand)
@@ -89,21 +92,21 @@ class Blackjack:
     def dealer_bust(self):
         return self.calculate_hand_value(self.dealer_hand) > 21
 
-    def determine_winner(self):
+    async def determine_winner(self):
         player_value = self.calculate_hand_value(self.player_hand)
         dealer_value = self.calculate_hand_value(self.dealer_hand)
 
         if self.player_bust():
-            writeScr(self.uid, self.bet*-2)
+            await writeScr(self.uid, self.bet*-1)
             return f"Player Busts! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif self.dealer_bust():
-            writeScr(self.uid, self.bet*2)
+            await writeScr(self.uid, self.bet*2)
             return f"Dealer Busts! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif player_value > dealer_value:
-            writeScr(self.uid, self.bet*2)
+            await writeScr(self.uid, self.bet*2)
             return f"Player wins! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif dealer_value > player_value:
-            writeScr(self.uid, self.bet*-2)
+            await writeScr(self.uid, self.bet*-1)
             return f"Dealer wins! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         else:
             return "It's a tie!"
@@ -129,7 +132,7 @@ class BlackjackView(discord.ui.View):
         except discord.NotFound:
             self.stop()
 
-    def get_game_state_embed(self):
+    async def get_game_state_embed(self):
         embed = discord.Embed(
             title="Blackjack",
             description="The game is in progress!",
@@ -146,7 +149,7 @@ class BlackjackView(discord.ui.View):
         embed.add_field(name="Dealer's Hand", value=f"{dealer_hand_str} ({dealer_value})", inline=False)
 
         if self.game.game_over:
-            embed.description = self.game.determine_winner()
+            embed.description = await self.game.determine_winner()
 
         return embed
 
@@ -158,14 +161,14 @@ class BlackjackView(discord.ui.View):
 
         if self.game.player_bust():
             self.game.game_over = True
-            embed = self.get_game_state_embed()
+            embed = await self.get_game_state_embed()
 
             for item in self.children:
                 item.disabled = True
             await self.update_message(interaction, embed)
             self.stop()
         else:
-            embed = self.get_game_state_embed()
+            embed = await self.get_game_state_embed()
             await self.update_message(interaction, embed)
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.red)
@@ -178,7 +181,7 @@ class BlackjackView(discord.ui.View):
 
         self.game.game_over = True
 
-        embed = self.get_game_state_embed()
+        embed = await self.get_game_state_embed()
 
         for item in self.children:
             item.disabled = True
@@ -197,17 +200,17 @@ class BlackjackCog(commands.Cog):
         if bet < 0:
             bet= bet* -1
         game = Blackjack(interaction.guild_id, interaction.user.id, bet)
-        safeToStart= game.start_game()
+        safeToStart= await game.start_game()
 
         if not safeToStart:
             await interaction.response.send_message(f"Please make sure you have at least {bet*2} <:CelestialPoints:1412891132559495178> to bet else you'd go into debt", ephemeral= True)
 
         view = BlackjackView(game)
 
-        embed = view.get_game_state_embed()
+        embed = await view.get_game_state_embed()
 
         initial_message = await interaction.response.send_message(embed=embed, view=view)
-        view.message = await initial_message.original_response()
+        view.message = initial_message
 
 async def setup(bot):
     await bot.add_cog(BlackjackCog(bot))

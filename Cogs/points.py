@@ -10,7 +10,6 @@ DIFFICULTY= 100
 DIFF_FACTOR= 1.25
 
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
 def lvl(p: int):
 
@@ -25,8 +24,10 @@ def anti_lvl(p: int):
 def to_next_lvl(p:int):
     return int(anti_lvl(lvl(p)+1) - anti_lvl(lvl(p)) - (p - anti_lvl(lvl(p))))
 
-def get_point_count(uid, gid):
-    return sqldb.get_gu_pts(uid, gid)
+async def get_point_count(uid, gid):
+    await sqldb.connect()
+    res= await sqldb.get_gu_pts(uid, gid)
+    return res
 
 def time_chatting(p: int):
     sec= p* TIME
@@ -39,11 +40,12 @@ def time_chatting(p: int):
 
     return f"{hours}:{mins%60}:{sec%60}"
 
-def user_xp(ts, uid, gid, dname, gname):
-    sqldb.init_guild(gid, gname)
-    old_ts= sqldb.get_gu_ts(gid, uid)
+async def user_xp(ts, uid, gid, dname, gname):
+    await sqldb.connect()
+    await sqldb.init_guild(gid, gname)
+    old_ts= await sqldb.get_gu_ts(gid, uid)
     if (ts - old_ts) > TIME:
-        sqldb.inc_gu_points(gid, uid, ts, 1, dname)
+        await sqldb.inc_gu_points(gid, uid, ts, 1, dname)
 
 class PointsCog(commands.Cog):
     def __init__(self, bot):
@@ -54,7 +56,7 @@ class PointsCog(commands.Cog):
     @app_commands.describe(member= "Lookup points for a specific member")
     async def __com_points(self, interaction: discord.Interaction, member: discord.Member= None):
         member= member or interaction.user
-        points= get_point_count(member.id, interaction.guild_id)
+        points= await get_point_count(member.id, interaction.guild_id)
         if not points:
             await interaction.response.send_message("unable to fetch points, the user may not have sent a message yet", ephemeral= True)
             return
@@ -75,7 +77,8 @@ class PointsCog(commands.Cog):
     @app_commands.describe(member= "Lookup points for a specific member")
     async def __com_bank(self, interaction: discord.Interaction, member: discord.Member= None):
         member= member or interaction.user
-        bank= sqldb.get_u_bank(member.id)
+        await sqldb.connect()
+        bank= await sqldb.get_u_bank(member.id)
         if not bank:
             bank= 0
         em0= discord.Embed(title= f"Bank account of {member.display_name}", color= 0xEE90AC, description= "Welcome to the central celestial bank, your funds are safely stored here and are separate from your guild points and discord credits")
@@ -90,11 +93,12 @@ class PointsCog(commands.Cog):
     @app_commands.describe(amount= "Amount to pay")
     @app_commands.describe(user= "The user to pay to")
     async def __CMD_pay(self, interaction: discord.Interaction,user: discord.User, amount: int):
-        available= sqldb.get_u_bank(interaction.user.id)
+        await sqldb.connect()
+        available= await sqldb.get_u_bank(interaction.user.id)
         if int(available) < amount:
             await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
             return
-        sqldb.pay(interaction.user.id, user.id, amount, user.display_name, interaction.created_at.timestamp())
+        await sqldb.pay(interaction.user.id, user.id, amount, user.display_name, interaction.created_at.timestamp())
         embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"You have successfully paid {user.mention} `{amount}` <:CelestialPoints:1412891132559495178>")
         if interaction.user.display_avatar:
             embed.set_thumbnail(url=interaction.user.display_avatar)
@@ -105,7 +109,8 @@ class PointsCog(commands.Cog):
     @app_commands.guild_only()
     async def __com_lb(self, interaction: discord.Interaction):
         lb= []
-        get_lb= sqldb.get_gu_lb(interaction.guild_id)
+        await sqldb.connect()
+        get_lb= await sqldb.get_gu_lb(interaction.guild_id)
         for entry in get_lb:
             lb.append({'user_id': int(entry[0]), 'score': int(entry[1]), 'name': entry[2]})
 
@@ -128,28 +133,30 @@ class PointsCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if not message.author.bot:
+            await sqldb.connect()
 
             ts= int(message.created_at.timestamp())
-            old_ts= int(sqldb.get_u_last(message.author.id))
+            old_ts= int(await sqldb.get_u_last(message.author.id))
             calc= ts - old_ts
-            old_avg= int(sqldb.get_u_tg(message.author.id))
+            old_avg= int(await sqldb.get_u_tg(message.author.id))
             if calc > TIME:
-                points= int(sqldb.get_u_dc(message.author.id))
+                points= int(await sqldb.get_u_dc(message.author.id))
                 if points == 0:
                     points= 1
                 new_avg= int(((old_avg * points) + calc) / (points + 1))
-                sqldb.set_u_tg(message.author.id, new_avg)
+                await sqldb.set_u_tg(message.author.id, new_avg)
             else:
                 new_avg= int(old_avg - calc)
                 if new_avg > 0:
-                    sqldb.set_u_tg(message.author.id, new_avg)
+                    await sqldb.set_u_tg(message.author.id, new_avg)
             
-            user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name, message.guild.name)
+            await user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name, message.guild.name)
             
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        sqldb.init_guild(guild.id, guild.name)
+        await sqldb.connect()
+        await sqldb.init_guild(guild.id, guild.name)
 
 
 async def setup(bot):

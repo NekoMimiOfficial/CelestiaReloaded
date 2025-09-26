@@ -1,8 +1,7 @@
-import sqlite3
-import time
-import multiprocessing
+import aiosqlite
+from typing import Optional, List, Tuple, Any
 
-DB_BUILD_CMD1= """\
+DB_BUILD_CMD1 = """\
 CREATE TABLE IF NOT EXISTS "Guilds" (
 	"gid"	INTEGER NOT NULL UNIQUE,
 	"identifier"	TEXT,
@@ -18,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "Guilds" (
 );
 """
 
-DB_BUILD_CMD2= """\
+DB_BUILD_CMD2 = """\
 CREATE TABLE IF NOT EXISTS "Users" (
 	"uid"	INTEGER NOT NULL UNIQUE,
 	"bank"	INTEGER NOT NULL,
@@ -26,12 +25,13 @@ CREATE TABLE IF NOT EXISTS "Users" (
 	"discordCredit"	INTEGER NOT NULL,
 	"display_name"	TEXT NOT NULL,
 	"last_message_ts"	INTEGER NOT NULL,
+    "first_added_ts" INTEGER,
 	"avg_online"	INTEGER,
 	PRIMARY KEY("uid")
 );
 """
 
-DB_BUILD_CMD3= """\
+DB_BUILD_CMD3 = """\
 CREATE TABLE IF NOT EXISTS "Points" (
 	"uid"	INTEGER NOT NULL,
 	"gid"	INTEGER NOT NULL,
@@ -42,310 +42,234 @@ CREATE TABLE IF NOT EXISTS "Points" (
 );
 """
 
-def t2s(tup: tuple):
-    fin_str= "("
-    for value in tup:
-        fin_str += value + ", "
-    fin_str= fin_str[:-2]
-    fin_str += ")"
-    return fin_str
-
-def quoo(count: int):
-    fin= "?, "*count
-    fin= fin[:-2]
-    return f"({fin})"
-
 class Cables:
-    def __init__(self, db: str):
-        self.db= db
-        self.conn= None
-        self.cursor= None
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self.conn: Optional[aiosqlite.Connection] = None
 
-    def format(self):
-        self.connect()
-        self._cmd(DB_BUILD_CMD1)
-        self._cmd(DB_BUILD_CMD2)
-        self._cmd(DB_BUILD_CMD3)
-
-    def connect(self):
-        try:
-            self.conn= sqlite3.connect(self.db)
-            self.cursor= self.conn.cursor()
-        except sqlite3.Error as e:
-            print(f"[ fail ] SQLite error: {e}")
-
-    def close(self):
-        if self.conn:
-            self.conn.close()
-
-    def _retry(self, cmd: str, values= None):
-        i= 0
-        while i < 50:
+    async def connect(self):
+        if self.conn is None:
             try:
-                self._cmd(cmd, values)
-                break
-            except:
-                i += 1
-                time.sleep(5)
+                self.conn = await aiosqlite.connect(self.db_path)
+            except aiosqlite.Error as e:
+                print(f"[ fail ] SQLite error during connection: {e}")
+                raise
 
-        if not i < 50:
-            print("[ fail ] sqlite database locked for more than 50 tries, bailing out...")
+    async def format(self):
+        await self.connect()
+        async with self.conn.cursor() as cursor:
+            await cursor.execute(DB_BUILD_CMD1)
+            await cursor.execute(DB_BUILD_CMD2)
+            await cursor.execute(DB_BUILD_CMD3)
+        await self.conn.commit()
 
-    def _cmd(self, cmd: str, values= None):
+    async def close(self):
+        if self.conn:
+            await self.conn.close()
+
+    async def _execute(self, cmd: str, values: Optional[Tuple[Any, ...]] = None, commit: bool = True):
+        if self.conn is None:
+            await self.connect()
+
         try:
-            if self.cursor and self.conn:
-                if values:
-                    self.cursor.execute(cmd, values)
-                    self.conn.commit()
-                else:
-                    self.cursor.execute(cmd)
-            else:
-                raise OSError
+            async with self.conn.cursor() as cursor:
+                await cursor.execute(cmd, values or ())
+            if commit:
+                await self.conn.commit()
 
-        except sqlite3.OperationalError as e:
-            if "is locked" in str(e):
-                ret_thread= multiprocessing.Process(target= self._retry, args= (cmd, values))
-                ret_thread.run()
-            else:
-                print(f"[ fail ] sqlite error: {e}")
-
+        except aiosqlite.OperationalError as e:
+            print(f"[ fail ] sqlite operational error: {e}")
         except Exception as e:
             print(f"[ fail ] General error: {e}")
+            raise
 
-    def _inserter(self, table: str, fields: tuple, values: tuple):
-        self._cmd(f"INSERT OR IGNORE INTO {table} {t2s(fields)} VALUES {quoo(len(values))}", tuple([str(item) for item in values]))
+    async def _fetch_one(self, cmd: str, values: Optional[Tuple[Any, ...]] = None) -> Optional[Tuple[Any, ...]]:
+        if self.conn is None:
+            await self.connect()
 
-    def _updater(self, table: str, fields: tuple, values: tuple):
-        self._cmd(f"INSERT OR REPLACE INTO {table} {t2s(fields)} VALUES {quoo(len(values))}", tuple([str(item) for item in values]))
+        async with self.conn.cursor() as cursor:
+            await cursor.execute(cmd, values or ())
+            return await cursor.fetchone()
 
-    def init_guild(self, gid: int, gname: str):
-        self._inserter("Guilds", ("gid", "identifier"), (gid, gname))
+    async def _fetch_all(self, cmd: str, values: Optional[Tuple[Any, ...]] = None) -> List[Tuple[Any, ...]]:
+        if self.conn is None:
+            await self.connect()
 
-    def denull(self, uid: int, ts):
-        self._cmd(f"UPDATE Users SET first_added_ts = {ts} WHERE uid = {uid} AND first_added_ts IS NULL")
-
-    def init_user(self, uid: int, gid: int, dname: str, ts):
-        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts", "first_added_ts"), (uid, 20, 50, 0, dname, ts, ts))
-        self._inserter("Points", ("uid", "gid", "points", "display_name", "timestamp"), (uid, gid, 0, dname, ts))
-        self.denull(uid, ts)
-
-    def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: int):
-        "This function should ONLY be used for the migrator, and that only runs ONCE on an EMPTY db table"
-        self._inserter("Points", ("uid", "gid", "points", "display_name", "timestamp"), (uid, gid, points, dname, ts))
-        self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid, bank, socialCredit, discordCredit, dname, ts))
-
-    def get_gu_pts(self, uid: int, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT points FROM Points WHERE uid = ? AND gid = ?", (str(uid), str(gid)))
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
-        return 0
-
-    def get_gu_lb(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT uid, points, display_name FROM Points where gid = ? ORDER BY points DESC LIMIT 10", (str(gid), ))
-            res= self.cursor.fetchall()
-            return res
-        return []
-
-    def get_gu_ts(self, gid: int, uid: int):
-         if self.cursor:
-            self._cmd(f"SELECT timestamp FROM Points where gid = ? AND uid = ?", (str(gid), str(uid)))
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
-
-    def inc_gu_points(self, gid: int, uid: int, ts: int, ptr: int, dname: str):
-        if self.cursor:
-            try:
-                self.init_user(uid, gid, dname, ts)
-                self._cmd(f"UPDATE Points SET points = points + ?, timestamp = ?, display_name = ? WHERE uid = ? AND gid = ?", (str(ptr), str(ts), str(dname), str(uid), str(gid)))
-                self._cmd(f"UPDATE Users SET bank = bank + ?, discordCredit = discordCredit + ?, last_message_ts = ?, display_name = ? WHERE uid = ?", (str(ptr), str(ptr), str(ts), str(dname), str(uid)))
-                return True
-            except:
-                return False
-        return False
-
-    def inc_u_bank(self, uid: int, ptr: int):
-        if self.cursor:
-            try:
-                self._cmd(f"UPDATE Users SET bank = bank + ? WHERE uid = ?", (str(ptr), str(uid)))
-                return True
-            except:
-                return False
-        return False
-
-    def dec_u_bank(self, uid: int, ptr: int):
-        if self.cursor:
-            try:
-                self._cmd(f"UPDATE Users SET bank = bank - ? WHERE uid = ?", (str(ptr), str(uid)))
-                return True
-            except:
-                return False
-        return False
+        async with self.conn.cursor() as cursor:
+            await cursor.execute(cmd, values or ())
+            return await cursor.fetchall()
 
 
-    def get_u_bank(self, uid: int):
-        if self.cursor:
-            self._cmd(f"SELECT bank FROM Users WHERE uid = {uid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return int(res[0][0])
-        return 0
+    async def init_guild(self, gid: int, gname: str):
+        await self._execute(
+            "INSERT OR IGNORE INTO Guilds (gid, identifier) VALUES (?, ?)",
+            (gid, gname)
+        )
 
-    def get_g_bot(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT modlog_bot FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return False
-            if res[0][0] == 0:
-                return False
-            else:
-                return True
+    async def denull(self, uid: int, ts):
+        await self._execute("UPDATE Users SET first_added_ts = ? WHERE uid = ? AND first_added_ts IS NULL", (ts, uid))
 
-    def set_g_bot(self, gid: int, val: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET modlog_bot = {val} WHERE gid = {gid}")
+    async def init_user(self, uid: int, gid: int, dname: str, ts: int):
+        await self._execute(
+            """
+            INSERT OR IGNORE INTO Users
+            (uid, bank, socialCredit, discordCredit, display_name, last_message_ts, first_added_ts)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (uid, 20, 50, 0, dname, ts, ts),
+            commit=False
+        )
 
-    def get_g_mod(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT modlog FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            if not res[0][0]:
-                return 0
-            return int(res[0][0])
+        await self._execute(
+            "INSERT OR IGNORE INTO Points (uid, gid, points, display_name, timestamp) VALUES (?, ?, ?, ?, ?)",
+            (uid, gid, 0, dname, ts),
+            commit=False
+        )
+        await self.denull(uid, ts)
+        await self.conn.commit()
 
-    def set_g_mod(self, gid: int, cid: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET modlog = {cid} WHERE gid = {gid}")
 
-    def chk_g_mod(self, gid: int):
+    async def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: int):
+        """This function should ONLY be used for the migrator, and that only runs ONCE on an EMPTY db table"""
+        await self._execute(
+            "INSERT OR IGNORE INTO Points (uid, gid, points, display_name, timestamp) VALUES (?, ?, ?, ?, ?)",
+            (uid, gid, points, dname, ts),
+            commit=False
+        )
+        await self._execute(
+            "INSERT OR IGNORE INTO Users (uid, bank, socialCredit, discordCredit, display_name, last_message_ts) VALUES (?, ?, ?, ?, ?, ?)",
+            (uid, bank, socialCredit, discordCredit, dname, ts)
+        )
+
+
+    async def get_gu_pts(self, uid: int, gid: int) -> int:
+        row = await self._fetch_one("SELECT points FROM Points WHERE uid = ? AND gid = ?", (uid, gid))
+        return int(row[0]) if row else 0
+
+    async def get_gu_lb(self, gid: int) -> List[Tuple[Any, ...]]:
+        return await self._fetch_all("SELECT uid, points, display_name FROM Points where gid = ? ORDER BY points DESC LIMIT 10", (gid,))
+
+    async def get_gu_ts(self, gid: int, uid: int) -> int:
+        row = await self._fetch_one("SELECT timestamp FROM Points where gid = ? AND uid = ?", (gid, uid))
+        return int(row[0]) if row else 0
+
+    async def inc_gu_points(self, gid: int, uid: int, ts: int, ptr: int, dname: str) -> bool:
         try:
-            res= self.get_g_mod(gid)
-            if res:
-                if not res == 0:
-                    return True
-        except:
+            await self.init_user(uid, gid, dname, ts)
+
+            await self._execute(
+                "UPDATE Points SET points = points + ?, timestamp = ?, display_name = ? WHERE uid = ? AND gid = ?",
+                (ptr, ts, dname, uid, gid), commit=False
+            )
+            await self._execute(
+                "UPDATE Users SET bank = bank + ?, discordCredit = discordCredit + ?, last_message_ts = ?, display_name = ? WHERE uid = ?",
+                (ptr, ptr, ts, dname, uid)
+            )
+            return True
+        except Exception as e:
+            print(f"Error in inc_gu_points: {e}")
             return False
-        return False
 
-    def get_u_last(self, uid: int):
-        if self.cursor:
-            self._cmd(f"SELECT last_message_ts FROM Users WHERE uid = {uid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
-        return 0
+    async def inc_u_bank(self, uid: int, ptr: int) -> bool:
+        try:
+            await self._execute("UPDATE Users SET bank = bank + ? WHERE uid = ?", (ptr, uid))
+            return True
+        except Exception as e:
+            print(f"Error in inc_u_bank: {e}")
+            return False
 
-    def get_u_dc(self, uid: int):
-        if self.cursor:
-            self._cmd(f"SELECT discordCredit FROM Users WHERE uid = {uid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
+    async def dec_u_bank(self, uid: int, ptr: int) -> bool:
+        try:
+            await self._execute("UPDATE Users SET bank = bank - ? WHERE uid = ?", (ptr, uid))
+            return True
+        except Exception as e:
+            print(f"Error in dec_u_bank: {e}")
+            return False
 
-    def get_u_sc(self, uid: int):
-        if self.cursor:
-            self._cmd(f"SELECT socialCredit FROM Users WHERE uid = {uid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
+    async def get_u_bank(self, uid: int) -> int:
+        row = await self._fetch_one("SELECT bank FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row else 0
 
-    def get_g_uc(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT uc_rolemenu FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
+    async def get_g_bot(self, gid: int) -> bool:
+        row = await self._fetch_one("SELECT modlog_bot FROM Guilds WHERE gid = ?", (gid,))
+        return bool(row and row[0])
 
-    def set_g_uc(self, gid: int, jr: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET uc_rolemenu = {jr} WHERE gid = {gid}")
+    async def set_g_bot(self, gid: int, val: int):
+        await self._execute("UPDATE Guilds SET modlog_bot = ? WHERE gid = ?", (val, gid))
 
-    def get_g_jr(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT join_role FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            return res[0][0]
+    async def get_g_mod(self, gid: int) -> int:
+        row = await self._fetch_one("SELECT modlog FROM Guilds WHERE gid = ?", (gid,))
+        return int(row[0]) if row and row[0] else 0
 
-    def set_g_jr(self, gid: int, jr: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET join_role = {jr} WHERE gid = {gid}")
+    async def set_g_mod(self, gid: int, cid: int):
+        await self._execute("UPDATE Guilds SET modlog = ? WHERE gid = ?", (cid, gid))
 
-    def get_g_verity(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT verity_cs FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            if not res[0][0]:
-                return 0
-            return int(res[0][0])
-        return 0
+    async def chk_g_mod(self, gid: int) -> bool:
+        return await self.get_g_mod(gid) != 0
 
-    def set_g_verity(self, gid: int, rid: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET verity_cs = {rid} WHERE gid = {gid}")
+    async def get_u_last(self, uid: int) -> int:
+        row = await self._fetch_one("SELECT last_message_ts FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row else 0
 
-    def get_g_welcome(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT welcome_message FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return ""
-            if not res[0][0]:
-                return ""
-            if res[0][0]:
-                return res[0][0]
-            return ""
+    async def get_u_dc(self, uid: int) -> int:
+        row = await self._fetch_one("SELECT discordCredit FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row else 0
 
-    def set_g_welcome(self, gid: int, msg: str):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET welcome_message = \"{msg}\" WHERE gid = {gid}")
+    async def get_u_sc(self, uid: int) -> int:
+        row = await self._fetch_one("SELECT socialCredit FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row else 0
 
-    def get_g_drm(self, gid: int):
-        if self.cursor:
-            self._cmd(f"SELECT verity_drm FROM Guilds WHERE gid = {gid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 86400
-            return res[0][0]
-        return 86400
+    async def get_g_uc(self, gid: int) -> str:
+        row = await self._fetch_one("SELECT uc_rolemenu FROM Guilds WHERE gid = ?", (gid,))
+        return str(row[0]) if row and row[0] else ""
 
-    def set_g_drm(self, gid: int, drm: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Guilds SET verity_drm = {drm} WHERE gid = {gid}")
+    async def set_g_uc(self, gid: int, jr: str):
+        await self._execute("UPDATE Guilds SET uc_rolemenu = ? WHERE gid = ?", (jr, gid))
 
-    def get_u_tg(self, uid: int):
-        if self.cursor:
-            self._cmd(f"SELECT avg_online FROM Users WHERE uid = {uid}")
-            res= self.cursor.fetchall()
-            if len(res) < 1:
-                return 0
-            if not res[0][0]:
-                return 0
-            return res[0][0]
-        return 0
+    async def get_g_jr(self, gid: int) -> int:
+        row = await self._fetch_one("SELECT join_role FROM Guilds WHERE gid = ?", (gid,))
+        return int(row[0]) if row and row[0] else 0
 
-    def set_u_tg(self, uid: int, ts: int):
-        if self.cursor:
-            self._cmd(f"UPDATE Users SET avg_online = {ts} WHERE uid = {uid}")
+    async def set_g_jr(self, gid: int, jr: int):
+        await self._execute("UPDATE Guilds SET join_role = ? WHERE gid = ?", (jr, gid))
 
-    def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts):
-        if self.cursor:
-            self._inserter("Users", ("uid", "bank", "socialCredit", "discordCredit", "display_name", "last_message_ts"), (uid_t, 20, 50, 0, dname_t, ts))
-            self._cmd(f"UPDATE Users SET bank = bank - {pts} WHERE uid = {uid_s}")
-            self._cmd(f"UPDATE Users SET bank = bank + {pts} WHERE uid = {uid_t}")
+    async def get_g_verity(self, gid: int) -> int:
+        row = await self._fetch_one("SELECT verity_cs FROM Guilds WHERE gid = ?", (gid,))
+        return int(row[0]) if row and row[0] else 0
+
+    async def set_g_verity(self, gid: int, rid: int):
+        await self._execute("UPDATE Guilds SET verity_cs = ? WHERE gid = ?", (rid, gid))
+
+    async def get_g_welcome(self, gid: int) -> str:
+        row = await self._fetch_one("SELECT welcome_message FROM Guilds WHERE gid = ?", (gid,))
+        return str(row[0]) if row and row[0] else ""
+
+    async def set_g_welcome(self, gid: int, msg: str):
+        await self._execute("UPDATE Guilds SET welcome_message = ? WHERE gid = ?", (msg, gid))
+
+    async def get_g_drm(self, gid: int) -> int:
+        row = await self._fetch_one("SELECT verity_drm FROM Guilds WHERE gid = ?", (gid,))
+        return int(row[0]) if row and row[0] else 86400
+
+    async def set_g_drm(self, gid: int, drm: int):
+        await self._execute("UPDATE Guilds SET verity_drm = ? WHERE gid = ?", (drm, gid))
+
+    async def get_u_tg(self, uid: int) -> int:
+        row = await self._fetch_one("SELECT avg_online FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row and row[0] else 0
+
+    async def set_u_tg(self, uid: int, ts: int):
+        await self._execute("UPDATE Users SET avg_online = ? WHERE uid = ?", (ts, uid))
+
+    async def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts: int):
+        await self._execute(
+            """
+            INSERT OR IGNORE INTO Users
+            (uid, bank, socialCredit, discordCredit, display_name, last_message_ts)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (uid_t, 20, 50, 0, dname_t, ts),
+            commit=False
+        )
+        await self._execute("UPDATE Users SET bank = bank - ? WHERE uid = ?", (pts, uid_s), commit=False)
+        await self._execute("UPDATE Users SET bank = bank + ? WHERE uid = ?", (pts, uid_t))

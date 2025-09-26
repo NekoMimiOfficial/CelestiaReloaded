@@ -8,7 +8,6 @@ import os.path
 import Tools.DBCables as cables
 
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
 class logger(commands.Cog):
     def __init__(self,bot):
@@ -27,33 +26,39 @@ class logger(commands.Cog):
         else:
             return True
 
-    def create_log_channel(self, gid: int, cid: int):
-        sqldb.set_g_mod(gid, cid)
-        sqldb.set_g_bot(gid, sqldb.get_g_mod(gid))
+    async def create_log_channel(self, gid: int, cid: int):
+        await sqldb.connect()
+        await sqldb.set_g_mod(gid, cid)
+        await sqldb.set_g_bot(gid, await sqldb.get_g_mod(gid))
 
-    def rm_log_channel(self, gid: int)-> str:
-        chk= sqldb.chk_g_mod(gid)
+    async def rm_log_channel(self, gid: int)-> str:
+        await sqldb.connect()
+        chk= await sqldb.chk_g_mod(gid)
         if not chk:
             return "This server isn't registered in the modlog system..."
-        sqldb.set_g_mod(gid, 0)
+        await sqldb.set_g_mod(gid, 0)
         return "This server is now registered in the modlog system."
 
-    def botToggle(self, gid: int, toggle: bool)-> str:
+    async def botToggle(self, gid: int, toggle: bool)-> str:
+        await sqldb.connect()
         bot= 0
         if toggle:
             bot= 1
-        sqldb.set_g_bot(gid, bot)
+        await sqldb.set_g_bot(gid, bot)
         if bot == 0:
             return "Successfully removed bots from the modlog!"
         return "Successfully enabled bot monitoring in modlog!"
 
-    def get_log_channel(self, gid: int): # tuple(int, bool)
-        log_c= sqldb.get_g_mod(gid)
-        log_b= sqldb.get_g_bot(gid)
+    async def get_log_channel(self, gid: int): # tuple(int, bool)
+        await sqldb.connect()
+        log_c= await sqldb.get_g_mod(gid)
+        log_b= await sqldb.get_g_bot(gid)
         return (log_c, log_b)
 
-    def check_log_channel(self, gid: int)-> bool:
-        return sqldb.chk_g_mod(gid)
+    async def check_log_channel(self, gid: int)-> bool:
+        await sqldb.connect()
+        res= await sqldb.chk_g_mod(gid)
+        return res
 
     logging= app_commands.Group(name= "logging", description= "Mod log tools")
 
@@ -64,7 +69,7 @@ class logger(commands.Cog):
     async def modlogsetup(self, interaction: discord.Interaction, chnl:discord.TextChannel):
         channel = chnl.id
         guild = interaction.guild_id
-        self.create_log_channel(guild,channel)
+        await self.create_log_channel(guild,channel)
         await interaction.response.send_message(f"Bound logs to channel `{chnl.name}` !")
 
     @logging.command(name= "disable", description= "disable the modlog")
@@ -72,7 +77,7 @@ class logger(commands.Cog):
     @app_commands.checks.has_permissions(administrator= True)
     async def removemodlog(self, interaction: discord.Interaction):
         guild = interaction.guild_id
-        work = self.rm_log_channel(guild)
+        work = await self.rm_log_channel(guild)
         await interaction.response.send_message(work)
 
     @logging.command(name= "monitor-bots", description= "Sets whether you want to monitor bot messages")
@@ -81,15 +86,15 @@ class logger(commands.Cog):
     @app_commands.checks.has_permissions(administrator= True)
     async def monbot(self, interaction: discord.Interaction, toggle: bool):
         guild= interaction.guild_id
-        resp= self.botToggle(guild, toggle)
+        resp= await self.botToggle(guild, toggle)
         embed= discord.Embed(color= 0xEE90AC, description=resp)
         await interaction.response.send_message(embed= embed, ephemeral= True)
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role: discord.Role):
-        if not self.check_log_channel(role.guild.id):
+        if not await self.check_log_channel(role.guild.id):
             return
-        logchnl, _= self.get_log_channel(role.guild.id)
+        logchnl, _= await self.get_log_channel(role.guild.id)
         embed= discord.Embed(color= 0xb7bdf8, title= "Role Created")
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
@@ -100,11 +105,11 @@ class logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, roleO: discord.Role, roleN: discord.Role):
-        if not self.check_log_channel(roleO.guild.id):
+        if not await self.check_log_channel(roleO.guild.id):
             return
         if roleO.name == roleN.name and roleO.color == roleN.color and roleO.permissions == roleN.permissions:
             return
-        logchnl, _= self.get_log_channel(roleO.guild.id)
+        logchnl, _= await self.get_log_channel(roleO.guild.id)
         if roleO.name == roleN.name:
             rname= roleO.name
         else:
@@ -124,9 +129,9 @@ class logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role):
-        if not self.check_log_channel(role.guild.id):
+        if not await self.check_log_channel(role.guild.id):
             return
-        logchnl, _= self.get_log_channel(role.guild.id)
+        logchnl, _= await self.get_log_channel(role.guild.id)
         embed= discord.Embed(color= 0xc6a0f6, title= "Role Deleted")
         embed.add_field(name= "Role name", value= role.name, inline= True)
         embed.add_field(name= "Role color", value= role.color, inline= True)
@@ -139,7 +144,7 @@ class logger(commands.Cog):
     async def on_message_delete(self,message: discord.Message):
         if not message.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             guild = message.guild.id
-            chk = self.check_log_channel(guild)
+            chk = await self.check_log_channel(guild)
             if message == '':
                 emp = False
             else:
@@ -148,7 +153,7 @@ class logger(commands.Cog):
                 author = message.author #Defines the message author
                 content = message.content #Defines the message content
                 channel = message.channel #Defines the message channel
-                logchnl, botAllow = self.get_log_channel(guild)
+                logchnl, botAllow = await self.get_log_channel(guild)
                 logchannel = self.bot.get_channel(logchnl)
                 if author.bot:
                     if not botAllow:
@@ -164,7 +169,7 @@ class logger(commands.Cog):
     async def on_message_edit(self,before,after: discord.Message):
         if not before.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             guild = before.guild.id
-            chk = self.check_log_channel(guild)
+            chk = await self.check_log_channel(guild)
             if chk == True:
                 author = before.author #Defines the message author
                 contentB = before.content #Defines the message content
@@ -172,7 +177,7 @@ class logger(commands.Cog):
                 contentB = self.fixEdit(contentB)
                 contentA = self.fixEdit(contentA)
                 channel = before.channel #Defines the message channel
-                logchnl, botAllow = self.get_log_channel(guild)
+                logchnl, botAllow = await self.get_log_channel(guild)
                 logchannel = self.bot.get_channel(logchnl)
                 if author.bot:
                     if not botAllow:
@@ -192,9 +197,9 @@ class logger(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self,member: discord.Member):
         guild = member.guild.id
-        chk = self.check_log_channel(guild)
+        chk = await self.check_log_channel(guild)
         if chk == True:
-            logchnl, _ = self.get_log_channel(guild)
+            logchnl, _ = await self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0xa6da95,title="Member Joined",description=f"Member {member.mention} has joined the server !")
 
@@ -214,9 +219,9 @@ class logger(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self,member):
         guild = member.guild.id
-        chk = self.check_log_channel(guild)
+        chk = await self.check_log_channel(guild)
         if chk == True:
-            logchnl, _ = self.get_log_channel(guild)
+            logchnl, _ = await self.get_log_channel(guild)
             logchannel = self.bot.get_channel(logchnl)
             embed = discord.Embed(color=0xed8796,title="Member Left",description=f"Member {member.mention} has left the server .")
 

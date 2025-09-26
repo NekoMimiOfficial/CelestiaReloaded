@@ -26,7 +26,7 @@ prefixes= ['c!', 'C!', 'c ', 'C ', "hey honeypie ", "Hey honeypie ", "hey honeyp
 bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all(), activity= activity, status= discord.Status.idle)
 
 #startup tasks
-print(f"Starting up Celestia Reloaded")
+print(f"Starting up Celestia Reloaded | PID: {os.getpid()}")
 print(f"Token: {token}")
 
 @bot.event
@@ -58,16 +58,10 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
     err_id= randstrgen()
-    if interaction.response.is_done():
-        send_func = interaction.followup.send
-    else:
-        send_func = interaction.response.send_message
+    send_func = interaction.channel.send
 
     if isinstance(error, app_commands.MissingPermissions):
-        await send_func(
-            f"You do not have the required permissions (`{', '.join(error.missing_permissions)}`) to use this command.",
-            ephemeral=True
-        )
+        await send_func(f"You do not have the required permissions (`{', '.join(error.missing_permissions)}`) to use this command.", delete_after= 8)
         return
 
     else:
@@ -75,7 +69,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
         print("-------------------------------------------------", file=sys.stderr)
 
-        await send_func(f"An error occured, please report this to the devs, ERR ID: {err_id}", ephemeral= True)
+        await send_func(f"An error occured, please report this to the devs, ERR ID: {err_id}")
 
 
 #import cogs
@@ -88,9 +82,8 @@ async def load():
 async def startup():
     if not os.path.exists("celestia_datastore.db"):
         sqldb= cables.Cables("celestia_datastore.db")
-        sqldb.connect()
-        sqldb.format()
-        sqldb.close()
+        await sqldb.format()
+        await sqldb.close()
     await load()
     await bot.start(token)
 

@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from discord.app_commands.models import app_command_option_factory
 from discord.ext import commands
 from discord import app_commands
@@ -8,7 +9,6 @@ import os, datetime
 import Tools.DBCables as cables
 
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
 def format_seconds(p: int):
     sec= p
@@ -85,7 +85,8 @@ class RolesCog(commands.Cog):
             for entry in self.uc:
                 new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']};"
             new_uc= new_uc[:-1]
-            sqldb.set_g_uc(interaction.guild_id, new_uc)
+            await sqldb.connect()
+            await sqldb.set_g_uc(interaction.guild_id, new_uc)
             await interaction.response.send_message(f"the role **{selected_option}** has been removed successfully", ephemeral= True)
 
 
@@ -100,7 +101,8 @@ class RolesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_role_menu_admin(self, interaction: discord.Interaction):
-        registry= sqldb.get_g_uc(interaction.guild_id);
+        await sqldb.connect()
+        registry= await sqldb.get_g_uc(interaction.guild_id);
         if registry == "":
             setup= False;
         else:
@@ -125,7 +127,8 @@ class RolesCog(commands.Cog):
     @role_commands.command(name= "user-roles", description= "Allows users to assign themselves roles from a menu")
     @app_commands.guild_only()
     async def __CMD_role_menu_user(self, interaction: discord.Interaction):
-        registry= sqldb.get_g_uc(interaction.guild_id)
+        await sqldb.connect()
+        registry= await sqldb.get_g_uc(interaction.guild_id)
         if registry == "":
             setup= False;
         else:
@@ -152,7 +155,8 @@ class RolesCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_join_role_add(self, interaction: discord.Interaction, role: discord.Role):
         uc= []
-        get_uc= sqldb.get_g_uc(interaction.guild_id)
+        await sqldb.connect()
+        get_uc= await sqldb.get_g_uc(interaction.guild_id)
         for line in get_uc.split(";"):
             try:
                 name, rid= line.strip().split(',')
@@ -165,7 +169,7 @@ class RolesCog(commands.Cog):
         for entry in uc:
             new_uc= new_uc+ f"{entry['role_name']},{entry['role_id']};"
         new_uc= new_uc[:-1]
-        sqldb.set_g_uc(interaction.guild_id, new_uc)
+        await sqldb.set_g_uc(interaction.guild_id, new_uc)
         await interaction.response.send_message(f"Done! the role {role.mention} has now been added to the user roles", ephemeral= True)
 
     @role_commands.command(name= "join-role", description= "Sets a role that all users that may join will get")
@@ -173,14 +177,16 @@ class RolesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_roles= True)
     async def __CMD_join_role(self, interaction: discord.Interaction, role: discord.Role):
-        sqldb.set_g_jr(interaction.guild_id, role.id)
+        await sqldb.connect()
+        await sqldb.set_g_jr(interaction.guild_id, role.id)
         await interaction.response.send_message(f"`{role.name}` has been set as the join role")
 
     @role_commands.command(name= "remove-join-role", description= "Removes the join role")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_roles= True)
     async def __CMD_join_role(self, interaction: discord.Interaction):
-        sqldb.set_g_jr(interaction.guild_id, 0)
+        await sqldb.connect()
+        await sqldb.set_g_jr(interaction.guild_id, 0)
         await interaction.response.send_message(f"Join role disabled.")
 
     @role_commands.command(name= "user-verify-welcome-message", description= "Sets the welcome message that a user gets after a successful verification")
@@ -191,7 +197,8 @@ class RolesCog(commands.Cog):
         message= message
         if message == "":
             message= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
-        sqldb.set_g_welcome(interaction.guild_id, message)
+        await sqldb.connect()
+        await sqldb.set_g_welcome(interaction.guild_id, message)
         await interaction.response.send_message("Done!\nI will now greet your members with the following message apon verification\n"+message, ephemeral= True)
 
     @role_commands.command(name= "user-verify", description= "A tool to grant users a role when they manage to verify successfully.")
@@ -206,7 +213,8 @@ class RolesCog(commands.Cog):
         message= message.replace("[role]", verifygrantrole.mention)
         message= message.replace("[owner]", interaction.guild.owner.mention)
         message= message.replace("<br>", "\n")
-        sqldb.set_g_verity(interaction.guild_id, verifygrantrole.id)
+        await sqldb.connect()
+        await sqldb.set_g_verity(interaction.guild_id, verifygrantrole.id)
         await interaction.channel.send(f"✿  {message}", allowed_mentions= discord.AllowedMentions.none(), view= self.Verifier())
         await interaction.response.send_message("❀  Done, you may now rest peacefully knowing no bots will join :3", ephemeral= True)
 
@@ -215,7 +223,8 @@ class RolesCog(commands.Cog):
     @app_commands.describe(wait= "Time to wait before kicking (in seconds)")
     @app_commands.checks.has_permissions(administrator= True)
     async def __CMD_verity_drm(self, interaction: discord.Interaction, wait: int= 86400):
-        sqldb.set_g_drm(interaction.guild_id, wait)
+        await sqldb.connect()
+        await sqldb.set_g_drm(interaction.guild_id, wait)
         await interaction.response.send_message(f"Updated timeout to `{format_seconds(wait)}`", ephemeral= True)
 
 
@@ -223,17 +232,21 @@ class RolesCog(commands.Cog):
         def __init__(self):
             super().__init__(label= "Verify", style= discord.ButtonStyle.green, custom_id= "CelestiaVerifyService")
 
-        def get_log_channel(self, gid: int): # tuple(int, bool)
-            log_c= sqldb.get_g_mod(gid)
-            log_b= sqldb.get_g_bot(gid)
+        async def get_log_channel(self, gid: int): # tuple(int, bool)
+            await sqldb.connect()
+            log_c= await sqldb.get_g_mod(gid)
+            log_b= await sqldb.get_g_bot(gid)
             return (log_c, log_b)
 
-        def check_log_channel(self, gid: int)-> bool:
-            return sqldb.chk_g_mod(gid)
+        async def check_log_channel(self, gid: int)-> bool:
+            await sqldb.connect()
+            res= await sqldb.chk_g_mod(gid)
+            return res
 
         async def callback(self, interaction: discord.Interaction):
-            roleID= int(sqldb.get_g_verity(interaction.guild_id))
-            welcome_msg= sqldb.get_g_welcome(interaction.guild_id)
+            await sqldb.connect()
+            roleID= int(await sqldb.get_g_verity(interaction.guild_id))
+            welcome_msg= await sqldb.get_g_welcome(interaction.guild_id)
             if welcome_msg == "":
                 welcome_msg= "Yay! Welcome, [user]! So happy you're here. Don't be shy, come say hi and make yourself at home!"
 
@@ -247,7 +260,7 @@ class RolesCog(commands.Cog):
                 await interaction.user.add_roles(role, reason= "Verified successfully")
 
                 try:
-                    logchnlid, _= self.get_log_channel(interaction.guild_id)
+                    logchnlid, _= await self.get_log_channel(interaction.guild_id)
                     logging= interaction.guild.get_channel(logchnlid)
                     verbed= discord.Embed(color= 0xa6d189, title= f"Member passed verification!", description= f"The member {interaction.user.mention} has successfully managed to complete the verification and has obtained the {role.mention} role!")
                     if interaction.user.display_avatar:
@@ -281,46 +294,65 @@ class RolesCog(commands.Cog):
         except Exception as e:
             print(f"[ fail ] attaching Verifier: {e}")
 
-    def auto_clean(self, member: discord.Member, role: int):
-        if sqldb.get_g_verity(member.guild.id) == 0:
+    async def auto_clean(self, member: discord.Member, role: discord.Role, drm_seconds: int, mod_channel_id: int):
+        # await asyncio.sleep(int(drm_seconds))
+        await asyncio.sleep(5)
+
+        try:
+            updated_member = member.guild.get_member(member.id)
+            if updated_member is None:
+                return
+
+        except Exception as e:
+            print(f"Error re-fetching member {member.id}: {e}")
             return
 
-        g_role= member.guild.get_role(role)
-        if not g_role:
-            return
+        member = updated_member
+        if not role in member.roles:
+            await member.kick(reason="Member did not verify within verification period")
+            
+            if mod_channel_id == 0:
+                return
+            em0 = discord.Embed(
+                title="Member Did Not Verify",
+                color=0x81C8BE,
+                description=f"The user {member.mention} was kicked after not verifying within the verification period."
+            )
 
-        time.sleep(int(sqldb.get_g_drm(member.guild.id)))
-        member_n= member.guild.get_member(member.id)
-        if member_n:
-            member= member_n
+            em0.set_thumbnail(url=member.display_avatar.url if member.display_avatar else None)
 
-        if not g_role in member.roles:
-            await member.kick(reason= "Member did not verify within 24 hours")
-            em0= discord.Embed(title= "Member did not verify within 24 hours", color= 0x81C8BE, description= f"The user {member.mention} was kicked after not verifying within the verification period")
+            em0.add_field(name="Full Name", value=member.global_name or member.name, inline=True)
+            em0.add_field(name="Nickname", value=member.display_name, inline=True)
+            em0.add_field(name="User ID", value=member.id, inline=False)
+            em0.add_field(name="Account Created", value=discord.utils.format_dt(member.created_at, style='f'), inline=True)
+            em0.add_field(name="Joined Server", value=discord.utils.format_dt(member.joined_at, style='f'), inline=True)
 
-            if member.display_avatar:
-                em0.set_thumbnail(url= member.display_avatar)
+            em0.timestamp = datetime.datetime.now(datetime.timezone.utc)
 
-            em0.add_field(name="Full name", value=member.global_name, inline=True)
-            em0.add_field(name="Nickname", value=member.nick if hasattr(member, "nick") else "None", inline=True)
-            em0.add_field(name= "UID", value= member.id)
-            em0.add_field(name= "SID", value= member.name)
-            em0.add_field(name="Account created", value=member.created_at.date(), inline=True)
-            em0.add_field(name="Joined this server", value=member.joined_at.date(), inline=True)
-            em0.timestamp= datetime.datetime.now(datetime.timezone.utc)
-
-            await member.guild.get_channel(int(sqldb.get_g_mod(member.guild.id))).send(embed= em0)
+            log_channel = member.guild.get_channel(int(mod_channel_id))
+            if log_channel:
+                await log_channel.send(embed=em0)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if not member.bot:
-            rid= int(sqldb.get_g_mod(member.guild.id))
+            await sqldb.connect()
+            rid= int(await sqldb.get_g_mod(member.guild.id))
             role= member.guild.get_role(rid)
             if role:
                 await member.add_roles(role, reason="Join role assigned")
                 
-            proc= multiprocessing.Process(target= self.auto_clean, args= (member, int(sqldb.get_g_verity(member.guild.id))))
-            proc.run()
+            drm= int(await sqldb.get_g_drm(member.guild.id))
+            mod= int(await sqldb.get_g_mod(member.guild.id))
+            roe= int(await sqldb.get_g_verity(member.guild.id))
+            if drm == 0:
+                return
+            if not drm:
+                return
+            r_f= member.guild.get_role(roe)
+            if not r_f:
+                return
+            self.bot.loop.create_task(self.auto_clean(member, r_f, drm, mod))
 
 
 

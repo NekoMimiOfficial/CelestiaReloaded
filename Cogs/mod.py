@@ -8,15 +8,11 @@ from discord.webhook.async_ import interaction_response_params
 from Cogs.roles import format_seconds
 import Tools.DBCables as cables
 
-sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
-
 TIME= 10
 DIFFICULTY= 100
 DIFF_FACTOR= 1.25
 
 sqldb= cables.Cables("celestia_datastore.db")
-sqldb.connect()
 
 def lvl(p: int):
 
@@ -30,9 +26,6 @@ def anti_lvl(p: int):
 
 def to_next_lvl(p:int):
     return int(anti_lvl(lvl(p)+1) - anti_lvl(lvl(p)) - (p - anti_lvl(lvl(p))))
-
-def get_point_count(uid, gid):
-    return sqldb.get_gu_pts(uid, gid)
 
 def time_chatting(p: int):
     sec= p* TIME
@@ -158,33 +151,34 @@ class ModCog(commands.Cog):
         if user.display_banner:
             embed.set_image(url= user.display_banner.url)
 
-        lm= sqldb.get_u_last(int(user.id))
+        await sqldb.connect()
+        lm= await sqldb.get_u_last(int(user.id))
         full_ts= f"<t:{int(lm)}:R>"
         if lm == 0 or not lm:
             full_ts= "`Unknown`"
 
-        dcl= sqldb.get_u_dc(int(user.id))
+        dcl= await sqldb.get_u_dc(int(user.id))
         if not dcl:
             dcl= 0
 
-        scl= sqldb.get_u_sc(int(user.id))
+        scl= await sqldb.get_u_sc(int(user.id))
         if not scl:
             scl= 0
         scl= int(scl)
         scp= scparse(scl)
 
-        upts= sqldb.get_gu_pts(int(user.id), int(user.guild.id))
+        upts= await sqldb.get_gu_pts(int(user.id), int(user.guild.id))
         pointo= str(upts)
 
-        tg= sqldb.get_u_tg(int(user.id))
+        tg= await sqldb.get_u_tg(int(user.id))
         if not tg or tg == 0:
             calc_tg= "Unknown"
 
         ts= int(interaction.created_at.timestamp())
-        old_ts= int(sqldb.get_u_last(user.id))
+        old_ts= int(await sqldb.get_u_last(user.id))
         calc= ts - old_ts
         old_avg= int(tg)
-        points= int(sqldb.get_u_dc(user.id))
+        points= int(await sqldb.get_u_dc(user.id))
         new_avg= int((calc + old_avg) / ((points + 1) / points))
         calc_tg= format_seconds(int(new_avg))
 
@@ -201,7 +195,7 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
         embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
         embed.add_field(name="Roles", value=show_roles, inline=False)
-
+        
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name= "guild", description= "Give information about the current guild")
