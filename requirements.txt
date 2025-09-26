@@ -3,3 +3,4 @@ discord.py[voice]
 nekos.py
 jishaku
 NekoMimi
+aiosqlite
