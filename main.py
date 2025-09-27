@@ -87,4 +87,6 @@ async def startup():
     await load()
     await bot.start(token)
 
+with open("proc.txt", mode= "w") as pid_file:
+    pid_file.write(str(os.getpid()))
 asyncio.run(startup())
