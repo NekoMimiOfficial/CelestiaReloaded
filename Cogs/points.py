@@ -122,17 +122,18 @@ class PointsCog(commands.Cog):
         em0.add_field(name= "Next level", value= f"`{to_next_lvl(bank)}` <:CelestialPoints:1412891132559495178>")
         await interaction.response.send_message(embed= em0)
 
-    @app_commands.command(name= "pay", description= "Pay a user money/Transfer money into another user's account.")
+    @app_commands.command(name= "pay", description= "Pay a user money/Transfer money into another user's account with a 1% fee.")
     @app_commands.describe(amount= "Amount to pay")
     @app_commands.describe(user= "The user to pay to")
     async def __CMD_pay(self, interaction: discord.Interaction,user: discord.User, amount: int):
         await sqldb.connect()
         available= await sqldb.get_u_bank(interaction.user.id)
-        if int(available) < amount:
-            await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
+        fee= math.ceil(amount / 100)
+        if int(available) < amount + fee:
+            await interaction.response.send_message(f"Sorry... you dont have enough funds to complete the transfer, make sure you can cover your amount plus an additional fee of **{fee}** <:CelestialPoints:1412891132559495178>", ephemeral= True)
             return
-        await sqldb.pay(interaction.user.id, user.id, amount, user.display_name, interaction.created_at.timestamp())
-        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"Transaction: {interaction.user.mention} → {user.mention}\nCurrency: **`{amount}`** <:CelestialPoints:1412891132559495178>\nRemaining balance: **{await sqldb.get_u_bank(interaction.user.id)}** <:CelestialPoints:1412891132559495178>")
+        await sqldb.pay(interaction.user.id, user.id, amount, fee, user.display_name, interaction.created_at.timestamp())
+        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"Transaction: {interaction.user.mention} → {user.mention}\nSent: **{amount}** <:CelestialPoints:1412891132559495178>\nFee: **{fee}** <:CelestialPoints:1412891132559495178>\nRemaining balance: **{await sqldb.get_u_bank(interaction.user.id)}** <:CelestialPoints:1412891132559495178>")
         embed.set_footer(text= "Funds are sent to the bank, they are not connected to your server points")
         embed.set_thumbnail(url="http://nekomimi.tilde.team/res/misc/CelestialPay.png")
         embed.timestamp= interaction.created_at.now()

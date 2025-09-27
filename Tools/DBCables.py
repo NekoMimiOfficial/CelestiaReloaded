@@ -261,7 +261,7 @@ class Cables:
     async def set_u_tg(self, uid: int, ts: float):
         await self._execute("UPDATE Users SET avg_online = ? WHERE uid = ?", (ts, uid))
 
-    async def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts: float):
+    async def pay(self, uid_s: int, uid_t: int, pts: int, fee: int, dname_t: str, ts: float):
         await self._execute(
             """
             INSERT OR IGNORE INTO Users
@@ -271,7 +271,7 @@ class Cables:
             (uid_t, 20, 50, 0, dname_t, ts),
             commit=False
         )
-        await self._execute("UPDATE Users SET bank = bank - ? WHERE uid = ?", (pts, uid_s), commit=False)
+        await self._execute("UPDATE Users SET bank = bank - ? WHERE uid = ?", (( pts + fee ), uid_s), commit=False)
         await self._execute("UPDATE Users SET bank = bank + ? WHERE uid = ?", (pts, uid_t))
 
     async def get_u_daily(self, uid: int):
