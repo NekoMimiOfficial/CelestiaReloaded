@@ -109,7 +109,7 @@ class Cables:
     async def denull(self, uid: int, ts):
         await self._execute("UPDATE Users SET first_added_ts = ? WHERE uid = ? AND first_added_ts IS NULL", (ts, uid))
 
-    async def init_user(self, uid: int, gid: int, dname: str, ts: int):
+    async def init_user(self, uid: int, gid: int, dname: str, ts: float):
         await self._execute(
             """
             INSERT OR IGNORE INTO Users
@@ -129,7 +129,7 @@ class Cables:
         await self.conn.commit()
 
 
-    async def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: int):
+    async def update_user(self, uid: int, gid: int, dname: str, points: int, bank: int, socialCredit: int, discordCredit: int, ts: float):
         """This function should ONLY be used for the migrator, and that only runs ONCE on an EMPTY db table"""
         await self._execute(
             "INSERT OR IGNORE INTO Points (uid, gid, points, display_name, timestamp) VALUES (?, ?, ?, ?, ?)",
@@ -153,7 +153,7 @@ class Cables:
         row = await self._fetch_one("SELECT timestamp FROM Points where gid = ? AND uid = ?", (gid, uid))
         return int(row[0]) if row else 0
 
-    async def inc_gu_points(self, gid: int, uid: int, ts: int, ptr: int, dname: str) -> bool:
+    async def inc_gu_points(self, gid: int, uid: int, ts: float, ptr: int, dname: str) -> bool:
         try:
             await self.init_user(uid, gid, dname, ts)
 
@@ -258,10 +258,10 @@ class Cables:
         row = await self._fetch_one("SELECT avg_online FROM Users WHERE uid = ?", (uid,))
         return int(row[0]) if row and row[0] else 0
 
-    async def set_u_tg(self, uid: int, ts: int):
+    async def set_u_tg(self, uid: int, ts: float):
         await self._execute("UPDATE Users SET avg_online = ? WHERE uid = ?", (ts, uid))
 
-    async def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts: int):
+    async def pay(self, uid_s: int, uid_t: int, pts: int, dname_t: str, ts: float):
         await self._execute(
             """
             INSERT OR IGNORE INTO Users
@@ -273,3 +273,10 @@ class Cables:
         )
         await self._execute("UPDATE Users SET bank = bank - ? WHERE uid = ?", (pts, uid_s), commit=False)
         await self._execute("UPDATE Users SET bank = bank + ? WHERE uid = ?", (pts, uid_t))
+
+    async def get_u_daily(self, uid: int):
+        row= await self._fetch_one("SELECT last_daily_ts FROM Users WHERE uid = ?", (uid,))
+        return int(row[0]) if row and row[0] else 0
+
+    async def set_u_daily(self, uid: int, ts: float):
+        await self._execute("UPDATE Users SET last_daily_ts = ? WHERE uid = ?", (ts, uid))

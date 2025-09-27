@@ -175,7 +175,7 @@ class ModCog(commands.Cog):
             calc_tg= "Unknown"
 
         ts= int(interaction.created_at.timestamp())
-        old_ts= int(await sqldb.get_u_last(user.id))
+        old_ts= float(await sqldb.get_u_last(user.id))
         calc= ts - old_ts
         old_avg= int(tg)
         points= int(await sqldb.get_u_dc(user.id))

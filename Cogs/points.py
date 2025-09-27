@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import math
+import math, random
 
 import Tools.DBCables as cables
 
@@ -39,6 +39,39 @@ def time_chatting(p: int):
         hours= int(mins/60)
 
     return f"{hours}:{mins%60}:{sec%60}"
+
+def format_seconds(p: int):
+    sec= p
+    mins= 0
+    hours= 0
+    if sec >= 60:
+        mins= int(sec/60)
+    if mins >= 60:
+        hours= int(mins/60)
+
+    return f"{hours}:{mins%60}:{sec%60}"
+
+def generate_biased_random(min_val: int= 50, max_val: int= 1200, target_mean: int= 200, std_dev: float= 50) -> int:
+    """
+    Generates a random integer within a specified range, biased towards a target mean 
+    using a Normal (Gaussian) distribution.
+
+    Args:
+        min_val (int): The absolute minimum value (e.g., 50).
+        max_val (int): The absolute maximum value (e.g., 1200).
+        target_mean (int): The central value to bias the results towards (e.g., 200).
+        std_dev (float): The standard deviation controlling the spread around the mean.
+                         A smaller value means tighter clustering around the mean.
+                         (You can choose 50 to keep most values between 100 and 300).
+                         (No.. it's not std::dev :3)
+
+    Returns:
+        int: A random integer, clamped within [min_val, max_val].
+    """
+    gaussianeur = random.gauss(mu=target_mean, sigma=std_dev)
+    clampino = max(min_val, min(max_val, gaussianeur))
+
+    return int(clampino)
 
 async def user_xp(ts, uid, gid, dname, gname):
     await sqldb.connect()
@@ -105,6 +138,20 @@ class PointsCog(commands.Cog):
         embed.timestamp= interaction.created_at.now()
         await interaction.response.send_message(embed= embed)
 
+    @app_commands(name= "daily", description= "Get your daily salary")
+    async def __CMD_daily(self, interaction: discord.Interaction):
+        await sqldb.connect()
+        daily_ts= await sqldb.get_u_daily(interaction.user.id)
+        current_ts= interaction.created_at.timestamp()
+        if (current_ts - daily_ts) < (86400 - 4 * 60 * 60):
+            await interaction.response.send_message(f"Please wait `{format_seconds(int((86400 - 14400) - (current_ts - daily_ts)))}` before the next daily.", ephemeral= True)
+            return
+        salary= generate_biased_random()
+        await sqldb.inc_u_bank(interaction.user.id, salary)
+        await sqldb.set_u_daily(interaction.user.id, current_ts)
+        embed= discord.Embed(color= 0xEE90AC, title= "Received daily!", description= f"You have received **{salary}** <:CelestialPoints:1412891132559495178>!\nCome back after 20 hours to claim your next daily\nFunds are sent to the bank, they are not connected to your server points")
+        await interaction.response.send_message(embed= embed)
+
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
     @app_commands.guild_only()
     async def __com_lb(self, interaction: discord.Interaction):
@@ -121,7 +168,7 @@ class PointsCog(commands.Cog):
                 spacer= "\n"
             else:
                 spacer= ""
-            body= body+ f"[{i}] {entry['name']} | `{int(entry['score'])+1}`<:CelestialPoints:1412891132559495178> | lvl{lvl(entry['score']+1)}\n{spacer}"
+            body= body+ f"[{i}] {entry['name']} | `{int(entry['score'])+1}` <:CelestialPoints:1412891132559495178> | lvl{lvl(entry['score']+1)}\n{spacer}"
             i+= 1
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
         try:
@@ -136,7 +183,7 @@ class PointsCog(commands.Cog):
             await sqldb.connect()
 
             ts= int(message.created_at.timestamp())
-            old_ts= int(await sqldb.get_u_last(message.author.id))
+            old_ts= float(await sqldb.get_u_last(message.author.id))
             calc= ts - old_ts
             old_avg= int(await sqldb.get_u_tg(message.author.id))
             if calc > TIME:
