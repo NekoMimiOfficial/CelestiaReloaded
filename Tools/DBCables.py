@@ -188,7 +188,7 @@ class Cables:
 
     async def get_u_bank(self, uid: int) -> int:
         row = await self._fetch_one("SELECT bank FROM Users WHERE uid = ?", (uid,))
-        return int(row[0]) if row else 0
+        return int(row[0]) if row and row[0] else 0
 
     async def get_g_bot(self, gid: int) -> bool:
         row = await self._fetch_one("SELECT modlog_bot FROM Guilds WHERE gid = ?", (gid,))

@@ -132,9 +132,9 @@ class PointsCog(commands.Cog):
             await interaction.response.send_message("Sorry... you dont have enough funds to complete the transfer.", ephemeral= True)
             return
         await sqldb.pay(interaction.user.id, user.id, amount, user.display_name, interaction.created_at.timestamp())
-        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"You have successfully paid {user.mention} `{amount}` <:CelestialPoints:1412891132559495178>")
-        if interaction.user.display_avatar:
-            embed.set_thumbnail(url=interaction.user.display_avatar)
+        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"Transaction: {interaction.user.mention} → {user.mention}\nCurrency: **`{amount}`** <:CelestialPoints:1412891132559495178>\nRemaining balance: **{await sqldb.get_u_bank(interaction.user.id)}** <:CelestialPoints:1412891132559495178>")
+        embed.set_footer(text= "Funds are sent to the bank, they are not connected to your server points")
+        embed.set_thumbnail(url="http://nekomimi.tilde.team/res/misc/CelestialPay.png")
         embed.timestamp= interaction.created_at.now()
         await interaction.response.send_message(embed= embed)
 
@@ -149,7 +149,9 @@ class PointsCog(commands.Cog):
         salary= generate_biased_random()
         await sqldb.inc_u_bank(interaction.user.id, salary)
         await sqldb.set_u_daily(interaction.user.id, current_ts)
-        embed= discord.Embed(color= 0xEE90AC, title= "Received daily!", description= f"You have received **{salary}** <:CelestialPoints:1412891132559495178>!\nCome back after 20 hours to claim your next daily\nFunds are sent to the bank, they are not connected to your server points")
+        embed= discord.Embed(color= 0xEE90AC, title= "Received daily!", description= f"You have received **{salary}** <:CelestialPoints:1412891132559495178>!\nCome back after 20 hours to claim your next daily")
+        embed.set_footer(text= "Funds are sent to the bank, they are not connected to your server points")
+        embed.set_thumbnail(url="http://nekomimi.tilde.team/res/misc/CelestialPay.png")
         await interaction.response.send_message(embed= embed)
 
     @app_commands.command(name= "leaderboard", description= "show the leaderboard for the current server")
