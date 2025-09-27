@@ -262,7 +262,7 @@ class RolesCog(commands.Cog):
                 try:
                     logchnlid, _= await self.get_log_channel(interaction.guild_id)
                     logging= interaction.guild.get_channel(logchnlid)
-                    verbed= discord.Embed(color= 0xa6d189, title= f"Member passed verification!", description= f"The member {interaction.user.mention} has successfully managed to complete the verification and has obtained the {role.mention} role!")
+                    verbed= discord.Embed(color= 0x85c1dc, title= f"Member passed verification!", description= f"The member {interaction.user.mention} has successfully managed to complete the verification and has obtained the {role.mention} role!")
                     if interaction.user.display_avatar:
                         verbed.set_thumbnail(url=interaction.user.display_avatar)
 
