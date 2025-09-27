@@ -179,6 +179,7 @@ class ModCog(commands.Cog):
         calc= ts - old_ts
         old_avg= int(tg)
         points= int(await sqldb.get_u_dc(user.id))
+        points= points if points or not points == 0 else 1
         new_avg= int((calc + old_avg) / ((points + 1) / points))
         calc_tg= format_seconds(int(new_avg))
 
