@@ -295,8 +295,7 @@ class RolesCog(commands.Cog):
             print(f"[ fail ] attaching Verifier: {e}")
 
     async def auto_clean(self, member: discord.Member, role: discord.Role, drm_seconds: int, mod_channel_id: int):
-        # await asyncio.sleep(int(drm_seconds))
-        await asyncio.sleep(5)
+        await asyncio.sleep(int(drm_seconds))
 
         try:
             updated_member = member.guild.get_member(member.id)
