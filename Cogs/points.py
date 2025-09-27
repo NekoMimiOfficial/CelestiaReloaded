@@ -138,7 +138,7 @@ class PointsCog(commands.Cog):
         embed.timestamp= interaction.created_at.now()
         await interaction.response.send_message(embed= embed)
 
-    @app_commands(name= "daily", description= "Get your daily salary")
+    @app_commands.command(name= "daily", description= "Get your daily salary")
     async def __CMD_daily(self, interaction: discord.Interaction):
         await sqldb.connect()
         daily_ts= await sqldb.get_u_daily(interaction.user.id)
