@@ -16,7 +16,8 @@ def lvl(p: int):
     if p < DIFFICULTY:
         return 0
 
-    return int(math.floor(math.log(p / DIFFICULTY, DIFF_FACTOR)))
+    res= int(math.floor(math.log(p / DIFFICULTY, DIFF_FACTOR)))
+    return 1 if res == 0 and p > DIFFICULTY else res
 
 def anti_lvl(p: int):
     return int(math.ceil((DIFF_FACTOR ** p) * DIFFICULTY))
@@ -127,13 +128,15 @@ class PointsCog(commands.Cog):
     @app_commands.describe(user= "The user to pay to")
     async def __CMD_pay(self, interaction: discord.Interaction,user: discord.User, amount: int):
         await sqldb.connect()
+        if amount < 0:
+            amount= amount* -1
         available= await sqldb.get_u_bank(interaction.user.id)
         fee= math.ceil(amount / 100)
         if int(available) < amount + fee:
             await interaction.response.send_message(f"Sorry... you dont have enough funds to complete the transfer, make sure you can cover your amount plus an additional fee of **{fee}** <:CelestialPoints:1412891132559495178>", ephemeral= True)
             return
         await sqldb.pay(interaction.user.id, user.id, amount, fee, user.display_name, interaction.created_at.timestamp())
-        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"Transaction: {interaction.user.mention} → {user.mention}\nSent: **{amount}** <:CelestialPoints:1412891132559495178>\nFee: **{fee}** <:CelestialPoints:1412891132559495178>\nRemaining balance: **{await sqldb.get_u_bank(interaction.user.id)}** <:CelestialPoints:1412891132559495178>")
+        embed= discord.Embed(color= 0xEE90AC, title= "Celestial Pay", description= f"Transaction: {interaction.user.mention} → {user.mention}\nSent: **{amount}** <:CelestialPoints:1412891132559495178>\nFee: **{fee}** <:CelestialPoints:1412891132559495178>\nRemaining balance: **{await sqldb.get_u_bank(interaction.user.id) - amount}** <:CelestialPoints:1412891132559495178>")
         embed.set_footer(text= "Funds are sent to the bank, they are not connected to your server points")
         embed.set_thumbnail(url="http://nekomimi.tilde.team/res/misc/CelestialPay.png")
         embed.timestamp= interaction.created_at.now()

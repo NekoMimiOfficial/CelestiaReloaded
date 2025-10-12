@@ -64,6 +64,9 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
         await send_func(f"You do not have the required permissions (`{', '.join(error.missing_permissions)}`) to use this command.", delete_after= 8)
         return
 
+    if isinstance(error, discord.errors.InteractionResponded):
+        return
+
     else:
         print(f"[ fail ] Unhandled Slash Command Error ({err_id})", file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)

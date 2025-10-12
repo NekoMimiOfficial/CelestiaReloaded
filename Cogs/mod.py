@@ -3,7 +3,6 @@ import asyncio
 import math
 from discord.ext import commands
 from discord import app_commands
-from discord.webhook.async_ import interaction_response_params
 
 from Cogs.roles import format_seconds
 import Tools.DBCables as cables
@@ -179,9 +178,14 @@ class ModCog(commands.Cog):
         calc= ts - old_ts
         old_avg= int(tg)
         points= int(await sqldb.get_u_dc(user.id))
-        points= points if points or not points == 0 else 1
-        new_avg= int((calc + old_avg) / ((points + 1) / points))
-        calc_tg= format_seconds(int(new_avg))
+        if not points or points == 0:
+            calc_tg= "Unknown"
+        else:
+            appendix= ""
+            if points < 50:
+                appendix= "[!] "
+            new_avg= int((calc + old_avg) / ((points + 1) / points))
+            calc_tg= appendix+ format_seconds(int(new_avg))
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)

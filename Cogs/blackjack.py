@@ -97,7 +97,6 @@ class Blackjack:
         dealer_value = self.calculate_hand_value(self.dealer_hand)
 
         if self.player_bust():
-            await writeScr(self.uid, self.bet*-1)
             return f"Player Busts! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif self.dealer_bust():
             await writeScr(self.uid, self.bet*2)
@@ -106,7 +105,6 @@ class Blackjack:
             await writeScr(self.uid, self.bet*2)
             return f"Player wins! You **WON** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         elif dealer_value > player_value:
-            await writeScr(self.uid, self.bet*-1)
             return f"Dealer wins! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         else:
             return "It's a tie!"
