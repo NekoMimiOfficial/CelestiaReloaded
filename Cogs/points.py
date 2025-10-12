@@ -23,7 +23,8 @@ def anti_lvl(p: int):
     return int(math.ceil((DIFF_FACTOR ** p) * DIFFICULTY))
 
 def to_next_lvl(p:int):
-    return int(anti_lvl(lvl(p)) - p)
+    x= (p - lvl(p)) if p > lvl(p) else p
+    return int(anti_lvl(lvl(p)) - x)
 
 async def get_point_count(uid, gid):
     await sqldb.connect()
