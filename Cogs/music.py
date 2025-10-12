@@ -47,7 +47,7 @@ class MusicCog(commands.Cog):
             em0.add_field(name= "Track ID", value= res["id"], inline= True)
             em0.set_thumbnail(url= res["cover"])
             dprint("embed created", interaction)
-            await interaction.response.send_message(embed= em0)
+            await interaction.followup.send(embed= em0)
             dprint("connecting", interaction)
             vc= interaction.user.voice.channel
             player= await vc.connect()
@@ -60,7 +60,7 @@ class MusicCog(commands.Cog):
             await player.disconnect()
             del players[str(interaction.guild_id)]
         else:
-            await interaction.response.send_message("You must connect to a VC first...", ephemeral= True)
+            await interaction.followup.send("You must connect to a VC first...", ephemeral= True)
 
     @app_commands.command(name= "stop", description= "Stop a song")
     @app_commands.guild_only()
