@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from Cogs.Nekoir import PYAAPI as nek
+from Cogs.necho import cables as nek
 from NekoMimi import reg
 
 players= {}
@@ -21,32 +21,31 @@ class MusicCog(commands.Cog):
     async def __cmd_play(self, interaction: discord.Interaction, song: str):
         searching= True
         retries= 30
+        res= False
+        await interaction.response.defer()
         while searching:
-            try:
-                fapi= nek.ApiService(self.api)
-                tapi= fapi.search(song, nek.SearchType.TRACK)[0]
-                sapi= fapi.track(tapi["id"], "LOW")
-                url= sapi["urls"][0]
-                searching= False
+            res= nek.get_track(song, self.api)
+            if res:
                 break
-            except Exception as e:
-                dprint(f"Nekoir API error: {e}", interaction)
             if retries < 1:
-                break
-            retries = retries - 1
-        dprint(url, interaction)
-        # dprint(tapi, interaction)
+                await interaction.response.send_message("Maximum retries reached, API error", ephemeral= True)
+                dprint(str(res), interaction)
+                return
+            retries= retries- 1
+        dprint(res["url"], interaction)
         if interaction.user.voice:
             dprint("attempt play", interaction)
             if str(interaction.guild_id) in players:
                 await interaction.response.send_message("I'm already playing a song in this guild!", ephemeral= True)
                 return
             dprint("passed check", interaction)
-            em0= discord.Embed(color= 0xEE90AC, title= f"Playing: {tapi['title']}")
-            em0.set_footer(text= "Powered by Nekoir", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
-            em0.add_field(name= "Duration", value= tapi["duration"], inline= True)
-            em0.add_field(name= "Track ID", value= tapi["id"], inline= True)
-            em0.set_thumbnail(url= tapi["cover"])
+            em0= discord.Embed(color= 0xEE90AC, title= f"Playing: {res['title']}")
+            em0.set_footer(text= "Powered by Necho", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
+            em0.add_field(name= "Duration", value= res["duration"], inline= True)
+            em0.add_field(name= "Artist", value= res["artist"], inline= True)
+            em0.add_field(name= "Album", value= res["album"], inline= True)
+            em0.add_field(name= "Track ID", value= res["id"], inline= True)
+            em0.set_thumbnail(url= res["cover"])
             dprint("embed created", interaction)
             await interaction.response.send_message(embed= em0)
             dprint("connecting", interaction)
@@ -55,7 +54,7 @@ class MusicCog(commands.Cog):
             players[str(interaction.guild_id)]= player
             dprint("playing", interaction)
             dprint("=====END=====", interaction)
-            player.play(discord.FFmpegPCMAudio(source= url))
+            player.play(discord.FFmpegPCMAudio(source= res["url"]))
             while player.is_playing():
                 await asyncio.sleep(1)
             await player.disconnect()

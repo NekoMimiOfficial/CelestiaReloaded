@@ -18,7 +18,9 @@ def lvl(p: int):
     if p < DIFFICULTY:
         return 0
 
-    return int(math.floor(math.log(p / DIFFICULTY, DIFF_FACTOR)))
+    res= int(math.floor(math.log(p / DIFFICULTY, DIFF_FACTOR)))
+    return 1 if res == 0 and p > DIFFICULTY else res
+
 
 def anti_lvl(p: int):
     return int(math.ceil((DIFF_FACTOR ** p) * DIFFICULTY))
