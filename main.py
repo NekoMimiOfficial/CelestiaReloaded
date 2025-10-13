@@ -21,7 +21,7 @@ def randstrgen():
 print(nm.figlet("Celestia", "larry3d"))
 
 token= reg.readCell("celestia")
-activity= discord.Activity(type= discord.ActivityType.watching, name= "Neko code in c++, cobol and assembly :'3")
+activity= discord.Activity(type= discord.ActivityType.watching, name= "NekoMimi code in c++, cobol and assembly :'3")
 prefixes= ['c!', 'C!', 'c ', 'C ', "hey honeypie ", "Hey honeypie ", "hey honeypie, ", "Hey honeypie, "]
 bot= commands.Bot(command_prefix= prefixes, intents= discord.Intents.all(), activity= activity, status= discord.Status.idle)
 

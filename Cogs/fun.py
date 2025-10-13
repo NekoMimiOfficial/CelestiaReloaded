@@ -1,4 +1,5 @@
 import random
+from typing import Optional
 import discord
 import random
 import nekos
@@ -20,6 +21,73 @@ async def writeScr(uid: int, amt: int):
         await sqldb.inc_u_bank(uid, amt)
     else:
         await sqldb.dec_u_bank(uid, amt*-1)
+
+def is_vowel(char: str) -> bool:
+    return char.lower() in 'aeiouy'
+
+def calculate_word_sensibility(name: str) -> float:
+    score = 1.0
+    n = name.lower()
+    if len(n) < 3:
+        return 0.5 # Neutral score for very short names
+
+    consecutive_consonants = 0
+    consecutive_vowels = 0
+    
+    for i in range(len(n)):
+        char = n[i]
+        
+        if is_vowel(char):
+            consecutive_vowels += 1
+            consecutive_consonants = 0
+            if consecutive_vowels >= 3:
+                score -= 0.10
+        else:
+            consecutive_consonants += 1
+            consecutive_vowels = 0
+            if consecutive_consonants >= 3:
+                score -= 0.20
+    return max(0.0, min(1.0, score))
+
+def blend_names(name1: str, name2: str) -> str:
+    n1 = name1.lower()
+    n2 = name2.lower()
+    len1 = len(n1)
+    len2 = len(n2)
+
+    best_split1 = len1 // 2
+    
+    for i in range(max(1, len1 // 3), min(len1, 2 * len1 // 3 + 1)):
+        if not is_vowel(n1[i-1]) and is_vowel(n1[i]):
+            best_split1 = i
+            break
+        elif is_vowel(n1[i-1]) and not is_vowel(n1[i]):
+             best_split1 = i
+             break
+    
+    prefix = n1[:best_split1]
+    
+    if not prefix:
+        if len1 > 0: prefix = n1[0]
+        else: prefix = "Unknown"
+
+    best_split2_start_index = len2 // 2
+    if prefix != "Unknown":
+        for i in range(max(1, len2 // 3), min(len2, 2 * len2 // 3 + 1)):
+            if not is_vowel(prefix[-1]) and is_vowel(n2[i]):
+                best_split2_start_index = i
+                break
+            elif is_vowel(prefix[-1]) and not is_vowel(n2[i]):
+                best_split2_start_index = i
+                break
+                
+    suffix = n2[best_split2_start_index:]
+    merged_name = (prefix + suffix).capitalize()
+    
+    if len(merged_name) < 4 and len(n1) > 2 and len(n2) > 2:
+        return (n1[:len1//2] + n2[len2//2:]).capitalize()
+        
+    return merged_name
 
 class Fun_Commands(commands.Cog):
     def __init__(self, bot):
@@ -54,6 +122,40 @@ class Fun_Commands(commands.Cog):
             emoji = "💞"
 
         await interaction.response.send_message(f"**{user.name}** is **{hot:.2f}%** hot {emoji}")
+
+    @app_commands.command(name= "ship", description= "See how compatible 2 member would be together >.<")
+    @app_commands.describe(member1= "First member")
+    @app_commands.describe(member2= "Second member")
+    async def __CMD_ship(self, interaction: discord.Interaction, member1: discord.Member, member2: discord.Member= None): #type: ignore
+        member2= member2 or interaction.user
+        random.seed(member1.id+ member2.id)
+
+        r= random.randint(1, 100)
+        compat= r/ 1.17
+
+        merger= "Uhh you have weird names... can't do that sorry :'3"
+        try:
+            merger= blend_names(member1.display_name, member2.display_name)
+        except:
+            pass
+
+        shipStat= "Ah... You two might not belong to each other :'<"
+        if compat > 25:
+            shipStat= "Cute! you two look good together!"
+        if compat > 50:
+            shipStat= "A strong bond! you two are such a great pair!"
+        if compat > 70:
+            shipStat= "Awww! what a lovely couple! when's the wed? >.<"
+
+        compat= compat* calculate_word_sensibility(merger)
+        em0= discord.Embed(title= shipStat, color= 0xEE90AC)
+        em0.add_field(name= "Member 1", value= member1.mention, inline= True)
+        em0.add_field(name= "Member 2", value= member2.mention, inline= True)
+        em0.add_field(name= "Couple Name", value= f"**{merger}**", inline= not merger.startswith("Uhh you have"))
+        em0.add_field(name= "Details", value= f"I have shipped **{member1.display_name}** and **{member2.display_name}** with a score of **{compat}**%!", inline= False)
+
+        await interaction.response.send_message(embed= em0)
+
     @app_commands.command(name= "slotmachine", description= "oh nyo... gambling..")
     @app_commands.guild_only()
     async def slot(self, interaction: discord.Interaction):
