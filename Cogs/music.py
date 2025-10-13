@@ -28,7 +28,7 @@ class MusicCog(commands.Cog):
             if res:
                 break
             if retries < 1:
-                await interaction.response.send_message("Maximum retries reached, API error", ephemeral= True)
+                await interaction.followup.send("Maximum retries reached, API error", ephemeral= True)
                 dprint(str(res), interaction)
                 return
             retries= retries- 1
@@ -36,11 +36,11 @@ class MusicCog(commands.Cog):
         if interaction.user.voice:
             dprint("attempt play", interaction)
             if str(interaction.guild_id) in players:
-                await interaction.response.send_message("I'm already playing a song in this guild!", ephemeral= True)
+                await interaction.followup.send("I'm already playing a song in this guild!", ephemeral= True)
                 return
             dprint("passed check", interaction)
             em0= discord.Embed(color= 0xEE90AC, title= f"Playing: {res['title']}")
-            em0.set_footer(text= "Powered by Necho", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
+            em0.set_footer(text= "Powered by Nekoir3 core", icon_url="http://nekomimi.tilde.team/pool/05/nekoir.png")
             em0.add_field(name= "Duration", value= res["duration"], inline= True)
             em0.add_field(name= "Artist", value= res["artist"], inline= True)
             em0.add_field(name= "Album", value= res["album"], inline= True)
@@ -72,31 +72,6 @@ class MusicCog(commands.Cog):
             await interaction.response.send_message("Stopped playing.")
         else:
             await interaction.response.send_message("But it wasn't even playing...", ephemeral= True)
-
-    @app_commands.command(name= "resume", description= "Resumes a song")
-    @app_commands.guild_only()
-    async def __cmd_resume(self, interaction: discord.Interaction):
-        if interaction.guild.voice_client:
-            if players[str(interaction.guild_id)].is_paused():
-                await players[str(interaction.guild_id)].stop()
-                await interaction.response.send_message("Resumed playing.")
-            else:
-                await interaction.response.send_message("But it was playing all along...", ephemeral= True)
-        else:
-            await interaction.response.send_message("But it wasn't even playing...", ephemeral= True)
-
-    @app_commands.command(name= "pause", description= "Pauses a song")
-    @app_commands.guild_only()
-    async def __cmd_pause(self, interaction: discord.Interaction):
-        if interaction.guild.voice_client:
-            if players[str(interaction.guild_id)].is_playing():
-                await players[str(interaction.guild_id)].stop()
-                await interaction.response.send_message("Paused playing.")
-            else:
-                await interaction.response.send_message("But it was paused all along...", ephemeral= True)
-        else:
-            await interaction.response.send_message("But it wasn't even playing...", ephemeral= True)
-
 
 async def setup(bot):
     await bot.add_cog(MusicCog(bot))
