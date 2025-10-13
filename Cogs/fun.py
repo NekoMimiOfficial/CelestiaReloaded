@@ -128,7 +128,8 @@ class Fun_Commands(commands.Cog):
     @app_commands.describe(member2= "Second member")
     async def __CMD_ship(self, interaction: discord.Interaction, member1: discord.Member, member2: discord.Member= None): #type: ignore
         member2= member2 or interaction.user
-        random.seed(member1.id+ member2.id)
+        sed= member1.id- member2.id if member1.id > member2.id else member2.id- member1.id
+        random.seed(sed)
 
         r= random.randint(1, 100)
         compat= r/ 0.78
