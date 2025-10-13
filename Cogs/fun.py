@@ -2,7 +2,7 @@ import random
 from typing import Optional
 import discord
 import random
-import nekos
+import nekos, re
 
 from discord import app_commands
 from discord.ext import commands
@@ -135,7 +135,9 @@ class Fun_Commands(commands.Cog):
 
         merger= "Uhh you have weird names... can't do that sorry :'3"
         try:
-            merger= blend_names(member1.display_name, member2.display_name)
+            clean_name1 = re.sub(r'[^a-zA-Z ]', '', member1.display_name)
+            clean_name2 = re.sub(r'[^a-zA-Z ]', '', member2.display_name)
+            merger= blend_names(clean_name1, clean_name2)
         except:
             pass
 
