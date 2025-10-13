@@ -135,8 +135,8 @@ class Fun_Commands(commands.Cog):
 
         merger= "Uhh you have weird names... can't do that sorry :'3"
         try:
-            clean_name1 = re.sub(r'[^a-zA-Z ]', '', member1.display_name)
-            clean_name2 = re.sub(r'[^a-zA-Z ]', '', member2.display_name)
+            clean_name1 = re.sub(r'[^a-zA-Z ]', '', member1.display_name.replace("_", " ").replace("-", " "))
+            clean_name2 = re.sub(r'[^a-zA-Z ]', '', member2.display_name.replace("_", " ").replace("-", " "))
             merger= blend_names(clean_name1, clean_name2)
         except:
             pass
