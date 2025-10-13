@@ -144,7 +144,7 @@ class logger(commands.Cog):
     async def on_message_delete(self,message: discord.Message):
         await sqldb.connect()
         if not message.guild:
-            await sqldb.set_u_snipe(message.author.id, message.content)
+            await sqldb.set_u_snipe(message.author.id, str(message.author.id)+ ":"+ message.content)
             return
         guild = message.guild.id
         await sqldb.set_g_snipe(guild, message.content)
