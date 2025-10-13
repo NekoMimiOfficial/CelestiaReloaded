@@ -143,7 +143,7 @@ class Fun_Commands(commands.Cog):
             pass
 
         compat= compat* calculate_word_sensibility(merger)* 1.17
-        compat= compat if compat < 100 else compat* 0.92
+        compat= compat if compat < 100 else compat* 0.89
         compat= compat if compat > 10 else 10 # cause i'd feel bad :'3
         compat= int(compat* 100)/ 100
 
