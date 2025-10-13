@@ -70,6 +70,9 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     if "This interaction has already been responded" in str(error):
         return
 
+    if "Unknown interaction" in str(error):
+        return
+
     else:
         print(f"[ fail ] Unhandled Slash Command Error ({err_id})", file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)

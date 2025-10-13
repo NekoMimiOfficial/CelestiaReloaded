@@ -4,3 +4,4 @@ nekos.py
 jishaku
 NekoMimi
 aiosqlite
+httpx
