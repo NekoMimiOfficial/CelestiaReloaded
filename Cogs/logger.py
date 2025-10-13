@@ -142,8 +142,13 @@ class logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self,message: discord.Message):
+        await sqldb.connect()
+        if not message.guild:
+            await sqldb.set_u_snipe(message.author.id, message.content)
+            return
+        guild = message.guild.id
+        await sqldb.set_g_snipe(guild, message.content)
         if not message.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
-            guild = message.guild.id
             chk = await self.check_log_channel(guild)
             if message == '':
                 emp = False

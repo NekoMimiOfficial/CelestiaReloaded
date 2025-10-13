@@ -107,6 +107,7 @@ class Blackjack:
         elif dealer_value > player_value:
             return f"Dealer wins! You **LOST** `{self.bet}` <:CelestialPoints:1412891132559495178>"
         else:
+            await writeScr(self.uid, self.bet)
             return "It's a tie!"
 
 class BlackjackView(discord.ui.View):

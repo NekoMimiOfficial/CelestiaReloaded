@@ -280,3 +280,17 @@ class Cables:
 
     async def set_u_daily(self, uid: int, ts: float):
         await self._execute("UPDATE Users SET last_daily_ts = ? WHERE uid = ?", (ts, uid))
+
+    async def set_g_snipe(self, gid: int, msg: str):
+        await self._execute("UPDATE Guilds SET last_snipe = ? WHERE gid = ?", (gid, msg))
+
+    async def set_u_snipe(self, uid: int, msg: str):
+        await self._execute("UPDATE Users SET last_snipe = ? WHERE uid = ?", (uid, msg))
+
+    async def get_g_snipe(self, gid: int):
+        row= await self._fetch_one("SELECT last_snipe FROM Guilds WHERE gid = ?", (gid,))
+        return str(row[0]) if row and row[0] else "Unknown"
+
+    async def get_u_snipe(self, uid: int):
+        row= await self._fetch_one("SELECT last_snipe FROM Users WHERE uid = ?", (uid,))
+        return str(row[0]) if row and row[0] else "Unknown"

@@ -117,6 +117,34 @@ class ModCog(commands.Cog):
         view= self.Kicker(members)
         await interaction.response.send_message(embed= embed, view= view)
 
+    @app_commands.command(name= "snipe")
+    @app_commands.guild_only()
+    async def __cmd_snipe(self, interaction: discord.Interaction):
+        await sqldb.connect()
+        getSnip= await sqldb.get_g_snipe(interaction.guild_id)
+        if getSnip.lower().startswith("unknown"):
+            await interaction.response.send_message("No snipes in DB.", ephemeral= True)
+            return
+        uid= getSnip.split(":", 1)[0]
+        txt= getSnip.split(":", 1)[1]
+        member= None
+        try:
+            interaction.guild.get_member(int(uid))
+        except:
+            pass
+        em0= discord.Embed(color= 0xEE90AC, description= "Elite sniper has been hired!")
+        if not member:
+            em0.add_field(name= "User", value= "Anonymous")
+        else:
+            em0.add_field(name= "User", value= member.mention)
+            if member.display_avatar:
+                em0.set_thumbnail(url= member.display_avatar.url)
+        if len(txt) > 990:
+            txt= txt[:985]+ "... (trimmed)"
+        em0.add_field(name= "Message", value= txt)
+        em0.set_footer(text= "lol get sniped :3")
+        await interaction.response.send_message(embed= em0)
+
     @app_commands.command(name= "purge")
     @app_commands.guild_only()
     @app_commands.describe(count= "Amount of messages to purge")
