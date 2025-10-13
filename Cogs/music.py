@@ -113,6 +113,10 @@ class MusicCog(commands.Cog):
             dprint(f"Error in progress task: {e}", interaction)
         finally:
             if player:
+                dprint("Disconnecting voice client in cleanup.", interaction)
+                await asyncio.sleep(1)
+                if player.is_connected():
+                    await player.disconnect()
                 guild_id_str = str(interaction.guild_id)
                 if guild_id_str in self.players:
                     del self.players[guild_id_str]
