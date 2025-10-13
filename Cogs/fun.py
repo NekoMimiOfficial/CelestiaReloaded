@@ -131,13 +131,17 @@ class Fun_Commands(commands.Cog):
         random.seed(member1.id+ member2.id)
 
         r= random.randint(1, 100)
-        compat= r/ 1.17
+        compat= r/ 0.8
 
         merger= "Uhh you have weird names... can't do that sorry :'3"
         try:
             merger= blend_names(member1.display_name, member2.display_name)
         except:
             pass
+
+        compat= compat* calculate_word_sensibility(merger)* 1.17
+        compat= compat if compat < 100 else 100
+        compat= compat if compat > 10 else 10 # cause i'd feel bad :'3
 
         shipStat= "Ah... You two might not belong to each other :'<"
         if compat > 25:
@@ -147,7 +151,6 @@ class Fun_Commands(commands.Cog):
         if compat > 70:
             shipStat= "Awww! what a lovely couple! when's the wed? >.<"
 
-        compat= compat* calculate_word_sensibility(merger)
         em0= discord.Embed(title= shipStat, color= 0xEE90AC)
         em0.add_field(name= "Member 1", value= member1.mention, inline= True)
         em0.add_field(name= "Member 2", value= member2.mention, inline= True)
