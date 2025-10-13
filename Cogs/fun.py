@@ -141,9 +141,10 @@ class Fun_Commands(commands.Cog):
         except:
             pass
 
-        compat= compat* calculate_word_sensibility(merger)* 1.17
+        compat= compat* calculate_word_sensibility(merger)* 1.21
         compat= compat if compat < 100 else 100
         compat= compat if compat > 10 else 10 # cause i'd feel bad :'3
+        compat= int(compat* 100)/ 100
 
         shipStat= "Ah... You two might not belong to each other :'<"
         if compat > 25:
