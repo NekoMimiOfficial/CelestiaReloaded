@@ -144,10 +144,8 @@ class logger(commands.Cog):
     async def on_message_delete(self,message: discord.Message):
         await sqldb.connect()
         if not message.guild:
-            await sqldb.set_u_snipe(message.author.id, str(message.author.id)+ ":"+ message.content)
             return
         guild = message.guild.id
-        await sqldb.set_g_snipe(guild, message.content)
         if not message.author.id == self.bot.user.id: #Checks the ID, if AuthorID = BotID, return. Else, continue.
             chk = await self.check_log_channel(guild)
             if message == '':
@@ -155,6 +153,8 @@ class logger(commands.Cog):
             else:
                 emp = True
             if chk == True and emp == True:
+                await sqldb.set_u_snipe(message.author.id, str(message.content))
+                await sqldb.set_g_snipe(guild, str(message.author.id)+ ":"+ message.content)
                 author = message.author #Defines the message author
                 content = message.content #Defines the message content
                 channel = message.channel #Defines the message channel
