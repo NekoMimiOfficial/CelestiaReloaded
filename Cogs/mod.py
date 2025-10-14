@@ -137,7 +137,7 @@ class ModCog(commands.Cog):
         if not member:
             em0.add_field(name= "User", value= "Anonymous", inline= True)
         else:
-            em0.add_field(name= "User", value= member.mention, inline= False)
+            em0.add_field(name= "User", value= member.mention, inline= True)
             if member.display_avatar:
                 em0.set_thumbnail(url= member.display_avatar.url)
         em0.add_field(name= "UID", value= f"`{uid}`", inline= True)
