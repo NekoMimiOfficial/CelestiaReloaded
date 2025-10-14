@@ -282,10 +282,10 @@ class Cables:
         await self._execute("UPDATE Users SET last_daily_ts = ? WHERE uid = ?", (ts, uid))
 
     async def set_g_snipe(self, gid: int, msg: str):
-        await self._execute("UPDATE Guilds SET last_snipe = ? WHERE gid = ?", (gid, msg))
+        await self._execute("UPDATE Guilds SET last_snipe = ? WHERE gid = ?", (msg, gid))
 
     async def set_u_snipe(self, uid: int, msg: str):
-        await self._execute("UPDATE Users SET last_snipe = ? WHERE uid = ?", (uid, msg))
+        await self._execute("UPDATE Users SET last_snipe = ? WHERE uid = ?", (msg, uid))
 
     async def get_g_snipe(self, gid: int):
         row= await self._fetch_one("SELECT last_snipe FROM Guilds WHERE gid = ?", (gid,))
