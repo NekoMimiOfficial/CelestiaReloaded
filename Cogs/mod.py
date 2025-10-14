@@ -130,7 +130,7 @@ class ModCog(commands.Cog):
         member= None
         try:
             if interaction.guild:
-                interaction.guild.get_member(int(uid))
+                member= interaction.guild.get_member(int(uid))
         except:
             pass
         em0= discord.Embed(color= 0xEE90AC, title= "Elite sniper has been hired!")
