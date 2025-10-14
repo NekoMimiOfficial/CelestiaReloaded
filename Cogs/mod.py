@@ -117,7 +117,7 @@ class ModCog(commands.Cog):
         view= self.Kicker(members)
         await interaction.response.send_message(embed= embed, view= view)
 
-    @app_commands.command(name= "snipe")
+    @app_commands.command(name= "snipe", description= "Summons elite sniper to snipe messages for you :3")
     @app_commands.guild_only()
     async def __cmd_snipe(self, interaction: discord.Interaction):
         await sqldb.connect()
@@ -129,19 +129,21 @@ class ModCog(commands.Cog):
         txt= getSnip.split(":", 1)[1]
         member= None
         try:
-            interaction.guild.get_member(int(uid))
+            if interaction.guild:
+                interaction.guild.get_member(int(uid))
         except:
             pass
-        em0= discord.Embed(color= 0xEE90AC, description= "Elite sniper has been hired!")
+        em0= discord.Embed(color= 0xEE90AC, title= "Elite sniper has been hired!")
         if not member:
-            em0.add_field(name= "User", value= "Anonymous")
+            em0.add_field(name= "User", value= "Anonymous", inline= True)
         else:
-            em0.add_field(name= "User", value= member.mention)
+            em0.add_field(name= "User", value= member.mention, inline= False)
             if member.display_avatar:
                 em0.set_thumbnail(url= member.display_avatar.url)
+        em0.add_field(name= "UID", value= f"`{uid}`", inline= True)
         if len(txt) > 990:
             txt= txt[:985]+ "... (trimmed)"
-        em0.add_field(name= "Message", value= txt)
+        em0.add_field(name= "Message", value= txt, inline= False)
         em0.set_footer(text= "lol get sniped :3")
         await interaction.response.send_message(embed= em0)
 
@@ -217,6 +219,10 @@ class ModCog(commands.Cog):
             new_avg= int((calc + old_avg) / ((points + 1) / points))
             calc_tg= appendix+ format_seconds(int(new_avg))
 
+        ldm= await sqldb.get_u_snipe(int(user.id))
+        if len(ldm) > 990:
+            ldm= ldm[:985]+ "... (trimmed)"
+
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
         embed.add_field(name= "UID", value= user.id)
@@ -229,6 +235,7 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Standing", value= "Regular user", inline= True)
         embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
         embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
+        embed.add_field(name= "Last Deleted Message", value= f"{ldm}", inline= False)
         embed.add_field(name="Roles", value=show_roles, inline=False)
         
         await interaction.response.send_message(embed=embed)
