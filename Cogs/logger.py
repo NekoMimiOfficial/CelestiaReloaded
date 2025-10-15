@@ -142,7 +142,6 @@ class logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self,message: discord.Message):
-        await sqldb.connect()
         if not message.guild:
             return
         guild = message.guild.id
@@ -153,8 +152,6 @@ class logger(commands.Cog):
             else:
                 emp = True
             if chk == True and emp == True:
-                await sqldb.set_u_snipe(message.author.id, str(message.content))
-                await sqldb.set_g_snipe(guild, str(message.author.id)+ ":"+ message.content)
                 author = message.author #Defines the message author
                 content = message.content #Defines the message content
                 channel = message.channel #Defines the message channel
@@ -165,7 +162,7 @@ class logger(commands.Cog):
                         return
                 embed = discord.Embed(color=0xf5bde6,title="Message Deleted",description=f"A message by {author.mention} was deleted in {channel.mention}")
                 embed.add_field(name= "Message Deleted", value= f"```\n{content}\n```")
-                if author.avatar.url:
+                if author.avatar:
                     embed.set_thumbnail(url=author.avatar.url)
                 embed.timestamp= datetime.datetime.now(datetime.timezone.utc)
                 await logchannel.send(embed=embed)
