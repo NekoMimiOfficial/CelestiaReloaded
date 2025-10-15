@@ -177,7 +177,7 @@ class PointsCog(commands.Cog):
                 member= interaction.guild.get_member(int(entry['user_id']))
                 if member:
                     member= member.mention
-            embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member)
+            embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member, inline= False)
             i+= 1
         if interaction.guild:
             first_mem_av= interaction.guild.get_member(int(lb[0]["user_id"]))
