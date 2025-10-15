@@ -27,8 +27,7 @@ class Owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def download(self, ctx, d_file):
-        await ctx.message.delete()
-        await ctx.send(file=discord.File(d_file))
+        await ctx.author.send(file=discord.File(d_file))
 
     @commands.command(name= "git")
     @commands.is_owner()

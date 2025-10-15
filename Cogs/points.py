@@ -169,18 +169,21 @@ class PointsCog(commands.Cog):
 
         body= "**Congrats to the top 3 members!**\n"
         i= 1
-        for entry in lb:
-            if i == 3:
-                spacer= "\n"
-            else:
-                spacer= ""
-            body= body+ f"[{i}] {entry['name']} | `{int(entry['score'])+1}` <:CelestialPoints:1412891132559495178> | lvl{lvl(entry['score']+1)}\n{spacer}"
-            i+= 1
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
-        try:
-            embed.set_thumbnail(url= interaction.guild.get_member(int(lb[0]["user_id"])).display_avatar)
-        except:
-            pass
+        for entry in lb:
+            member= entry['name']
+            medal= " (:first_place:)" if i == 1 else " (:second_place:)" if i == 2 else " (:third_place:)" if i == 3 else ""
+            if interaction.guild:
+                member= interaction.guild.get_member(int(entry['user_id']))
+                if member:
+                    member= member.mention
+            embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member)
+            i+= 1
+        if interaction.guild:
+            first_mem_av= interaction.guild.get_member(int(lb[0]["user_id"]))
+            if first_mem_av:
+                first_mem_av= first_mem_av.display_avatar
+                embed.set_thumbnail(url= first_mem_av)
         await interaction.response.send_message(embed= embed)
 
     @commands.Cog.listener()
