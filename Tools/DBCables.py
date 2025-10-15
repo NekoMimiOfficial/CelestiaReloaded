@@ -294,3 +294,7 @@ class Cables:
     async def get_u_snipe(self, uid: int):
         row= await self._fetch_one("SELECT last_snipe FROM Users WHERE uid = ?", (uid,))
         return str(row[0]) if row and row[0] else "Unknown"
+
+    async def get_u_lb(self) -> List[Tuple[Any, ...]]:
+        return await self._fetch_all("SELECT uid, discordCredit, display_name FROM Users ORDER BY discordCredit DESC LIMIT 10")
+

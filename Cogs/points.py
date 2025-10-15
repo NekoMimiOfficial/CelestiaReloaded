@@ -167,19 +167,41 @@ class PointsCog(commands.Cog):
         for entry in get_lb:
             lb.append({'user_id': int(entry[0]), 'score': int(entry[1]), 'name': entry[2]})
 
-        body= "**Congrats to the top 3 members!**\n"
         i= 1
-        embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
+        embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard")
         for entry in lb:
             member= entry['name']
-            member_obj= None
             medal= " (:first_place:)" if i == 1 else " (:second_place:)" if i == 2 else " (:third_place:)" if i == 3 else ""
             if interaction.guild:
                 member= interaction.guild.get_member(int(entry['user_id']))
                 if member:
-                    member_obj= member
                     member= member.mention
-            print(member_obj.display_name)
+            embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member, inline= False)
+            i+= 1
+        if interaction.guild:
+            first_mem_av= interaction.guild.get_member(int(lb[0]["user_id"]))
+            if first_mem_av:
+                first_mem_av= first_mem_av.display_avatar
+                embed.set_thumbnail(url= first_mem_av)
+        await interaction.response.send_message(embed= embed)
+
+    @app_commands.command(name= "global-leaderboard", description= "show the leaderboard for the top users")
+    async def __com_u_lb(self, interaction: discord.Interaction):
+        lb= []
+        await sqldb.connect()
+        get_lb= await sqldb.get_u_lb()
+        for entry in get_lb:
+            lb.append({'user_id': int(entry[0]), 'score': int(entry[1]), 'name': entry[2]})
+
+        i= 1
+        embed= discord.Embed(color= 0xEE90AC, title= "Global Leaderboard")
+        for entry in lb:
+            member= entry['name']
+            medal= " (:first_place:)" if i == 1 else " (:second_place:)" if i == 2 else " (:third_place:)" if i == 3 else ""
+            if interaction.guild:
+                member= interaction.guild.get_member(int(entry['user_id']))
+                if member:
+                    member= member.mention
             embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member, inline= False)
             i+= 1
         if interaction.guild:
