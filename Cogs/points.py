@@ -172,11 +172,14 @@ class PointsCog(commands.Cog):
         embed= discord.Embed(color= 0xEE90AC, title= "Leaderboard", description= body)
         for entry in lb:
             member= entry['name']
+            member_obj= None
             medal= " (:first_place:)" if i == 1 else " (:second_place:)" if i == 2 else " (:third_place:)" if i == 3 else ""
             if interaction.guild:
                 member= interaction.guild.get_member(int(entry['user_id']))
                 if member:
+                    member_obj= member
                     member= member.mention
+            print(member_obj.display_name)
             embed.add_field(name= f"[{i}]{medal} @ lvl{lvl(entry['score']+ 1)} : **{int(entry['score'])+ 1}** <:CelestialPoints:1412891132559495178>", value= member, inline= False)
             i+= 1
         if interaction.guild:
