@@ -1,3 +1,4 @@
+import json
 import discord
 from discord.ext import commands
 
@@ -5,16 +6,25 @@ from Tools.DBCables import Cables
 
 sqldb= Cables("celestia_datastore.db")
 
+def message2json(message: discord.Message):
+    jdict= {}
+    jdict['message']= message.content
+    jdict['auth_id']= message.author.id
+    jdict['timestamp']= message.created_at.timestamp()
+    jdict['channel_id']= 0 if not message.channel else message.channel.id
+    jdict['guild_id']= 0 if not message.guild else message.guild.id
+    return json.dumps(jdict)
+
 async def snipe_user(message: discord.Message):
     member= message.author
     if member and not member.bot and not message.content.replace(" ", "").strip() == "":
-        await sqldb.set_u_snipe(member.id, message.content)
+        await sqldb.set_u_snipe(member.id, message2json(message))
 
 async def snipe_guild(message: discord.Message):
     guild= message.guild
     member= message.author
     if member and guild and not member.bot and not message.content.replace(" ", "").strip() == "":
-        await sqldb.set_g_snipe(guild.id, str(member.id)+ ':'+ message.content)
+        await sqldb.set_g_snipe(guild.id, message2json(message))
 
 async def check_init_guild(guild: discord.Guild):
     is_banned= await sqldb.chk_g_ban(guild.id)

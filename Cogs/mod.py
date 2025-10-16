@@ -1,6 +1,6 @@
 import discord
 import asyncio
-import math
+import math, json
 from discord.ext import commands
 from discord import app_commands
 
@@ -122,15 +122,15 @@ class ModCog(commands.Cog):
     async def __cmd_snipe(self, interaction: discord.Interaction):
         await sqldb.connect()
         getSnip= await sqldb.get_g_snipe(interaction.guild_id)
-        if getSnip.lower().startswith("unknown"):
+        if not getSnip.lower().replace('"', "'").replace(" ", "").startswith("{'"):
             await interaction.response.send_message("No snipes in DB.", ephemeral= True)
             return
-        uid= getSnip.split(":", 1)[0]
-        txt= getSnip.split(":", 1)[1]
+        jdict= json.loads(getSnip)
+        txt= jdict['message']
         member= None
         try:
             if interaction.guild:
-                member= interaction.guild.get_member(int(uid))
+                member= interaction.guild.get_member(int(jdict['auth_id']))
         except:
             pass
         em0= discord.Embed(color= 0xEE90AC, title= "Elite sniper has been hired!")
@@ -140,7 +140,12 @@ class ModCog(commands.Cog):
             em0.add_field(name= "User", value= member.mention, inline= True)
             if member.display_avatar:
                 em0.set_thumbnail(url= member.display_avatar.url)
-        em0.add_field(name= "UID", value= f"`{uid}`", inline= True)
+        em0.timestamp= jdict['timestamp']
+        em0.add_field(name= "UID", value= f"`{jdict['auth_id']}`", inline= True)
+        if not jdict['channel_id'] == 0:
+            chan= interaction.guild.get_channel(jdict['channel_id'])
+            if chan:
+                em0.add_field(name= "Channel", value= chan.mention)
         if len(txt) > 990:
             txt= txt[:985]+ "... (trimmed)"
         em0.add_field(name= "Message", value= txt, inline= False)
