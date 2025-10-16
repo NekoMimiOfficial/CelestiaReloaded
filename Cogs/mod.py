@@ -62,7 +62,7 @@ def scparse(sc: int):
     return "Dangerous"
 
 class ModCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot= bot
 
     class KickerButtonC(discord.ui.Button):
@@ -147,6 +147,7 @@ class ModCog(commands.Cog):
             chan= interaction.guild.get_channel(jdict['channel_id'])
             if chan:
                 em0.add_field(name= "Channel", value= chan.mention, inline= True)
+        em0.add_field(name= "Guild", value= interaction.guild.name, inline= True)
         if len(txt) > 990:
             txt= txt[:985]+ "... (trimmed)"
         em0.add_field(name= "Message", value= txt, inline= False)
