@@ -300,8 +300,6 @@ class Cables:
     
     async def chk_g_ban(self, gid: int)-> bool:
         row= await self._fetch_one("SELECT gid FROM BannedGuilds WHERE gid = ?", (gid,))
-        print(row)
-        print(True if row and row[0] else False)
         return True if row and row[0] else False
 
     async def ban_guild(self, gid: int, gname: str, reason: str):
