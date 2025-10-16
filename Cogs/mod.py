@@ -133,19 +133,19 @@ class ModCog(commands.Cog):
                 member= interaction.guild.get_member(int(jdict['auth_id']))
         except:
             pass
-        em0= discord.Embed(color= 0xEE90AC, title= "Elite sniper has been hired!")
+        em0= discord.Embed(color= 0xEE90AC, title= "Headshot!")
         if not member:
             em0.add_field(name= "User", value= "Anonymous", inline= True)
         else:
             em0.add_field(name= "User", value= member.mention, inline= True)
             if member.display_avatar:
                 em0.set_thumbnail(url= member.display_avatar.url)
-        em0.timestamp= jdict['timestamp']
         em0.add_field(name= "UID", value= f"`{jdict['auth_id']}`", inline= True)
         if not jdict['channel_id'] == 0:
             chan= interaction.guild.get_channel(jdict['channel_id'])
             if chan:
-                em0.add_field(name= "Channel", value= chan.mention)
+                em0.add_field(name= "Channel", value= chan.mention, inline= True)
+        em0.add_field(name= "Timestamp", value= f"`<t:{jdict['timestamp']}:R>`", inline= True)
         if len(txt) > 990:
             txt= txt[:985]+ "... (trimmed)"
         em0.add_field(name= "Message", value= txt, inline= False)
