@@ -41,7 +41,7 @@ class ListenerCog(commands.Cog):
     async def on_message(self, message: discord.Message):
         await sqldb.connect()
         
-        if message.guild:
+        if message.guild and self.bot.user and not message.author.id == self.bot.user.id:
             await check_init_guild(message.guild)
 
     @commands.Cog.listener()
