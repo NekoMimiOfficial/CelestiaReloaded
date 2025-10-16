@@ -211,6 +211,8 @@ class ModCog(commands.Cog):
         tg= await sqldb.get_u_tg(int(user.id))
         if not tg or tg == 0:
             calc_tg= "Unknown"
+        if tg > 200000:
+            calc_tg= "a very long time"
 
         ts= int(interaction.created_at.timestamp())
         old_ts= float(await sqldb.get_u_last(user.id))
