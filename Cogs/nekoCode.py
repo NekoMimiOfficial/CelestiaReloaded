@@ -44,7 +44,7 @@ class Owner(commands.Cog):
 
     @commands.command(name= "gban")
     @commands.is_owner()
-    async def ban_guild(self, ctx: commands.Context, gid, reason, gname: Optional[str]= None):
+    async def ban_guild(self, ctx: commands.Context, gid, *, reason):
         gid= gid
         try:
             gid= int(gid)
@@ -53,7 +53,7 @@ class Owner(commands.Cog):
             return
         try_get= self.bot.get_guild(gid)
         got_gname= try_get.name if try_get else "Unknown"
-        gname= gname or got_gname
+        gname= got_gname
         await sqldb.ban_guild(gid, gname, reason)
         embed= discord.Embed(title= "Guild Banned", color= 0xEE90AC)
         if try_get:
