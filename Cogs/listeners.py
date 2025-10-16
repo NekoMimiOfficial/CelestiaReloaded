@@ -31,7 +31,11 @@ async def check_init_guild(guild: discord.Guild):
     if is_banned:
         channels= guild.text_channels
         if channels and len(channels) > 0:
-            await channels[0].send("# Celestia has been banned from being in this guild\nThis bot can not be added nor used in this server, Our team has deemed this server ineligible to receive the services provided by Celestia, Any stored data will be subject to manual review and deletion\nIf you believe that our team has falsely flagged your server please contact us via email: nekomimi@tilde.team\n\n-# This action is usually irreversable")
+            for chan in channels: # least i could do is cause them trouble :3
+                try:
+                    await chan.send("# Celestia has been banned from being in this guild\nThis bot can not be added nor used in this server, Our team has deemed this server ineligible to receive the services provided by Celestia, Any stored data will be subject to manual review and deletion\nIf you believe that our team has falsely flagged your server please contact us via email: nekomimi@tilde.team\n\n-# This action is usually irreversable")
+                except:
+                    pass
         await guild.leave()
     await sqldb.init_guild(guild.id, guild.name)
 
