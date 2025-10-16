@@ -236,6 +236,9 @@ class ModCog(commands.Cog):
                 ldm['message']= ldm['message'][:985]+ "... (trimmed)"
         dm_ts= "`Unknown`" if ldm['timestamp'] == 0 else f"<t:{int(ldm['timestamp'])}:R>"
 
+        checker1= " [!]" if interaction.guild and interaction.guild_id == ldm['guild_id'] else ""
+        checker2= " [!]" if interaction.guild and interaction.channel_id == ldm['channel_id'] else ""
+
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
         embed.add_field(name= "UID", value= user.id)
@@ -248,8 +251,8 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Standing", value= "Regular user", inline= True)
         embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`", inline= True)
         embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
-        embed.add_field(name= "DM GID", value= f"`{ldm['guild_id']}`", inline= True)
-        embed.add_field(name= "DM CID", value= f"`{ldm['channel_id']}`", inline= True)
+        embed.add_field(name= f"DM GID{checker1}", value= f"`{ldm['guild_id']}`", inline= True)
+        embed.add_field(name= f"DM CID{checker2}", value= f"`{ldm['channel_id']}`", inline= True)
         embed.add_field(name= "DM Timestamp", value= f"{dm_ts}", inline= True)
         embed.add_field(name= "Last Deleted Message", value= f"{ldm['message']}", inline= False)
         embed.add_field(name="Roles", value=show_roles, inline=False)
