@@ -127,6 +127,7 @@ class ModCog(commands.Cog):
             return
         jdict= json.loads(getSnip)
         txt= jdict['message']
+        dm_ts= "`Unknown`" if jdict['timestamp'] == 0 else f"<t:{int(jdict['timestamp'])}:R>"
         member= None
         try:
             if interaction.guild:
@@ -141,11 +142,11 @@ class ModCog(commands.Cog):
             if member.display_avatar:
                 em0.set_thumbnail(url= member.display_avatar.url)
         em0.add_field(name= "UID", value= f"`{jdict['auth_id']}`", inline= True)
+        em0.add_field(name= "Timestamp", value= f"{dm_ts}", inline= True)
         if not jdict['channel_id'] == 0:
             chan= interaction.guild.get_channel(jdict['channel_id'])
             if chan:
                 em0.add_field(name= "Channel", value= chan.mention, inline= True)
-        em0.add_field(name= "Timestamp", value= f"`<t:{jdict['timestamp']}:R>`", inline= True)
         if len(txt) > 990:
             txt= txt[:985]+ "... (trimmed)"
         em0.add_field(name= "Message", value= txt, inline= False)
@@ -232,7 +233,7 @@ class ModCog(commands.Cog):
             ldm= json.loads(ldm_obj)
             if len(ldm['message']) > 990:
                 ldm['message']= ldm['message'][:985]+ "... (trimmed)"
-        dm_ts= "Unknown" if ldm['timestamp'] == 0 else f"<t:{ldm['timestamp']}:R>"
+        dm_ts= "`Unknown`" if ldm['timestamp'] == 0 else f"<t:{int(ldm['timestamp'])}:R>"
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
@@ -248,7 +249,7 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
         embed.add_field(name= "DM GID", value= f"`{ldm['guild_id']}`", inline= True)
         embed.add_field(name= "DM CID", value= f"`{ldm['channel_id']}`", inline= True)
-        embed.add_field(name= "DM Timestamp", value= f"`{dm_ts}`", inline= True)
+        embed.add_field(name= "DM Timestamp", value= f"{dm_ts}", inline= True)
         embed.add_field(name= "Last Deleted Message", value= f"{ldm['message']}", inline= False)
         embed.add_field(name="Roles", value=show_roles, inline=False)
         
