@@ -228,7 +228,7 @@ class ModCog(commands.Cog):
 
         ldm_obj= await sqldb.get_u_snipe(int(user.id))
         ldm= None
-        if not ldm.replace('"', "'").replace(" ", "").strip().startswith("{'"):
+        if not ldm_obj.replace('"', "'").replace(" ", "").strip().startswith("{'"):
             ldm= {'message': 'Unknown', 'channel_id': 0, 'guild_id': 0, 'timestamp': 0}
         else:
             ldm= json.loads(ldm_obj)
