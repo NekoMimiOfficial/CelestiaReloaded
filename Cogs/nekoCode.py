@@ -1,9 +1,14 @@
+from typing import Optional
 import discord
 from discord.ext import commands
 import subprocess
 
+from Tools.DBCables import Cables
+
+sqldb= Cables("celetia_datastore.db")
+
 class Owner(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()
@@ -37,9 +42,32 @@ class Owner(commands.Cog):
         embed = discord.Embed(color=0xEE90AC,title='Syncing with git remote',description=emO)
         await ctx.send(embed=embed)
 
+    @commands.command(name= "gban")
+    @commands.is_owner()
+    async def ban_guild(self, ctx: commands.Context, gid, reason, gname: Optional[str]= None):
+        gid= gid
+        try:
+            gid= int(gid)
+        except:
+            await ctx.send("Make sure the GID is a number", delete_after= 8)
+            return
+        try_get= self.bot.get_guild(gid)
+        got_gname= try_get.name if try_get else "Unknown"
+        gname= gname or got_gname
+        await sqldb.ban_guild(gid, gname, reason)
+        embed= discord.Embed(title= "Guild Banned", color= 0xEE90AC)
+        if try_get:
+            embed.set_thumbnail(url= try_get.icon.url if try_get.icon else "")
+        embed.add_field(name= "Name", value= gname, inline= True)
+        embed.add_field(name= "ID", value= str(gid), inline= True)
+        if try_get:
+            embed.add_field(name= "Members", value= str(try_get.member_count), inline= True)
+        embed.add_field(name= "Reason", value= reason, inline= False)
+        await ctx.send(embed= embed)
+
     @commands.command()
     @commands.is_owner()
-    async def guilds(self, ctx):
+    async def ginvs(self, ctx):
         # usually i dont think my bot will be that popular so i wont handle if the message gets too large
         g_list= self.bot.guilds
         body= ""
@@ -56,6 +84,19 @@ class Owner(commands.Cog):
                 body += f"{g.name} @ {g.id} (failed to get invite)\n"
 
         embed= discord.Embed(title= "List of guilds that house Celestia", color= 0xEE90AC, description= body)
+        await ctx.send(embed= embed)
+
+    @commands.command()
+    @commands.is_owner()
+    async def guilds(self, ctx: commands.Context):
+        guilds= self.bot.guilds
+        i= 1
+        body= ""
+        for guild in guilds:
+            body= body+ f"[{i}] ({guild.name})\n> {guild.id} & {guild.member_count}"+ "\n\n"
+            i= i+ 1
+        body= body[:1990]
+        embed= discord.Embed(title= "Celestia Adoptors", color= 0xEE90AC, description= body)
         await ctx.send(embed= embed)
 
     @discord.app_commands.command(name= "neofetch", description= "Get the neofetch output of the bot host")

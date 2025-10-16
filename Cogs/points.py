@@ -232,13 +232,7 @@ class PointsCog(commands.Cog):
                     await sqldb.set_u_tg(message.author.id, new_avg)
             
             await user_xp(message.created_at.timestamp(), message.author.id, message.guild.id, message.author.display_name, message.guild.name)
-            
-
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild):
-        await sqldb.connect()
-        await sqldb.init_guild(guild.id, guild.name)
-
+        
 
 async def setup(bot):
     await bot.add_cog(PointsCog(bot))

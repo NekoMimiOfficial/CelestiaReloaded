@@ -297,4 +297,10 @@ class Cables:
 
     async def get_u_lb(self) -> List[Tuple[Any, ...]]:
         return await self._fetch_all("SELECT uid, discordCredit, display_name FROM Users ORDER BY discordCredit DESC LIMIT 10")
+    
+    async def chk_g_ban(self, gid: int)-> bool:
+        row= await self._fetch_one("SELECT gid FROM BannedGuilds WHERE gid = ?", (gid,))
+        return True if row and row[0] else False
 
+    async def ban_guild(self, gid: int, gname: str, reason: str):
+        await self._execute("INSERT OR IGNORE INTO BannedGuilds (gid, guild_name, reason) VALUES (?, ?, ?)", (gid, gname, reason))
