@@ -37,6 +37,10 @@ class ListenerCog(commands.Cog):
         await snipe_user(message)
         await snipe_guild(message)
 
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        await sqldb.connect()
+        
         if message.guild:
             await check_init_guild(message.guild)
 
