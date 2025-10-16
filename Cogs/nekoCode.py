@@ -5,7 +5,7 @@ import subprocess
 
 from Tools.DBCables import Cables
 
-sqldb= Cables("celetia_datastore.db")
+sqldb= Cables("celestia_datastore.db")
 
 class Owner(commands.Cog):
     def __init__(self, bot: commands.Bot):
