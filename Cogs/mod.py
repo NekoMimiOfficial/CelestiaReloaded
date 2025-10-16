@@ -224,9 +224,15 @@ class ModCog(commands.Cog):
             new_avg= int((calc + old_avg) / ((points + 1) / points))
             calc_tg= appendix+ format_seconds(int(new_avg))
 
-        ldm= await sqldb.get_u_snipe(int(user.id))
-        if len(ldm) > 990:
-            ldm= ldm[:985]+ "... (trimmed)"
+        ldm_obj= await sqldb.get_u_snipe(int(user.id))
+        ldm= None
+        if not ldm.replace('"', "'").replace(" ", "").strip().startswith("{'"):
+            ldm= {'message': 'Unknown', 'channel_id': 0, 'guild_id': 0, 'timestamp': 0}
+        else:
+            ldm= json.loads(ldm_obj)
+            if len(ldm['message']) > 990:
+                ldm['message']= ldm['message'][:985]+ "... (trimmed)"
+        dm_ts= "Unknown" if ldm['timestamp'] == 0 else f"<t:{ldm['timestamp']}:R>"
 
         embed.add_field(name= "Full name", value=user.global_name, inline=True)
         embed.add_field(name= "Nickname", value=user.nick if hasattr(user, "nick") else "None", inline=True)
@@ -238,9 +244,12 @@ class ModCog(commands.Cog):
         embed.add_field(name= "Discord Credit", value= f"`{dcl} | {time_chatting(dcl)}`\n`lvl: {lvl(dcl)}`", inline= True)
         embed.add_field(name= "Last Message", value= full_ts, inline= True)
         embed.add_field(name= "Standing", value= "Regular user", inline= True)
-        embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`")
+        embed.add_field(name= "Touching grass for", value= f"`{calc_tg}`", inline= True)
         embed.add_field(name= "Server points", value= f"`{pointo}` <:CelestialPoints:1412891132559495178>\n`{time_chatting(int(pointo))} | lvl: {lvl(int(pointo))}`", inline= True)
-        embed.add_field(name= "Last Deleted Message", value= f"{ldm}", inline= False)
+        embed.add_field(name= "DM GID", value= f"`{ldm['guild_id']}`", inline= True)
+        embed.add_field(name= "DM CID", value= f"`{ldm['channel_id']}`", inline= True)
+        embed.add_field(name= "DM Timestamp", value= f"`{dm_ts}`", inline= True)
+        embed.add_field(name= "Last Deleted Message", value= f"{ldm['message']}", inline= False)
         embed.add_field(name="Roles", value=show_roles, inline=False)
         
         await interaction.response.send_message(embed=embed)
