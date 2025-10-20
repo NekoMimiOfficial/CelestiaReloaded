@@ -19,27 +19,33 @@ async def get_track(term, api):
             try:
                 req = await client.get(url=api + "/search/", params={'s': term})
                 req.raise_for_status()
-            except (HTTPStatusError, RequestError, TimeoutException):
+            except (HTTPStatusError, RequestError, TimeoutException) as e:
+                print("[ fail ] [ music ] cant search:", e)
                 return False
 
             jsonObj = req.json()
             if not "items" in jsonObj:
+                print("[ fail ] [ music ] no items in response")
                 return False
             items = jsonObj["items"]
             if len(items) < 1:
+                print("[ fail ] [ music ] items are empty")
                 return False
             songID = items[0]["id"]
 
             try:
                 getUrlPlayable = await client.get(url=api + "/track/", params={'id': songID, 'quality': 'LOW'})
                 getUrlPlayable.raise_for_status()
-            except (HTTPStatusError, RequestError, TimeoutException):
+            except (HTTPStatusError, RequestError, TimeoutException) as e:
+                print("[ fail ] [ music ] cant get song URL from ID:", e)
                 return False
 
             gson = getUrlPlayable.json()
             if not len(gson) > 0:
+                print("[ fail ] [ music ] malformed url response")
                 return False
             if getUrlPlayable.text.replace("\"", "'").startswith("{'detail"):
+                print("[ fail ] [ music ] api issue, no url")
                 return False
             return {
                 'url': gson[-1]["OriginalTrackUrl"],
@@ -50,5 +56,6 @@ async def get_track(term, api):
                 'artist': items[0]["artist"]["name"],
                 'album': items[0]["album"]["title"]
                 }
-    except Exception:
+    except Exception as e:
+        print("[ fail ] [ music ] generic error:", e)
         return False
