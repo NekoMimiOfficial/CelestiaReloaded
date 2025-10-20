@@ -133,6 +133,7 @@ class MusicCog(commands.Cog):
 
         await interaction.response.defer()
         if not song.startswith("http://") and not song.startswith("https://") and not song.count(".") > 0:
+            dprint(self.api, interaction)
             while searching:
                 res= await nek.get_track(song, self.api)
                 if res:
