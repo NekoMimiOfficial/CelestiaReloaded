@@ -53,6 +53,13 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
     print("-------------------------------------------", file=sys.stderr)
 
+    if isinstance(error, commands.errors.NotOwner):
+        await ctx.send("You are not the owner of this bot", delete_after= 5)
+        return
+
+    if isinstance(error, commands.errors.CommandNotFound):
+        return
+
     await ctx.send(f"An error occured, please report this to the devs, ERR ID: {err_id}")
 
 @bot.tree.error
