@@ -118,6 +118,7 @@ class ModCog(commands.Cog):
         await interaction.response.send_message(embed= embed, view= view)
 
     @app_commands.command(name= "snipe", description= "Summons elite sniper to snipe messages for you :3")
+    @app_commands.checks.has_permissions(administrator= True)
     @app_commands.guild_only()
     async def __cmd_snipe(self, interaction: discord.Interaction):
         await sqldb.connect()
@@ -171,6 +172,7 @@ class ModCog(commands.Cog):
 
     @app_commands.command(name= "user", description= "User information")
     @app_commands.describe(user= "User to perform operation on")
+    @app_commands.checks.has_permissions(administrator= True)
     @commands.guild_only()
     async def user(self,interaction: discord.Interaction, user: discord.Member= None):
         if not user:

@@ -7,4 +7,5 @@ Uptime
 dataStore
 discord.py
 celestia_datastore.db
+celestia_datastore_special.db
 proc.txt
