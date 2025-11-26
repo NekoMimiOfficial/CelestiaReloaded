@@ -20,7 +20,7 @@ async def writeScr(uid: int, amt: int):
         await sqldb.dec_u_bank(uid, amt*-1)
 
 class Blackjack:
-    def __init__(self, gid, uid, money):
+    def __init__(self, gid, uid, money, user):
         self.deck = self.create_deck()
         self.player_hand = []
         self.dealer_hand = []
@@ -29,6 +29,7 @@ class Blackjack:
         self.gid= int(gid)
         self.bet= money
         self.bank= 0
+        self.user= user
 
     def create_deck(self):
         """Creates and shuffles a standard 52-card deck."""
@@ -156,6 +157,10 @@ class BlackjackView(discord.ui.View):
     async def hit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
 
+        if not interaction.user.id == self.game.user.id:
+            await interaction.response.send_message("You aren't sitting on the betting table...", ephemeral= True)
+            return
+
         self.game.hit(self.game.player_hand)
 
         if self.game.player_bust():
@@ -173,6 +178,10 @@ class BlackjackView(discord.ui.View):
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.red)
     async def stand_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
+        
+        if not interaction.user.id == self.game.user.id:
+            await interaction.response.send_message("You aren't sitting on the betting table...", ephemeral= True)
+            return
 
         while self.game.calculate_hand_value(self.game.dealer_hand) < 17:
             self.game.hit(self.game.dealer_hand)
@@ -198,7 +207,7 @@ class BlackjackCog(commands.Cog):
         bet= bet
         if bet < 0:
             bet= bet* -1
-        game = Blackjack(interaction.guild_id, interaction.user.id, bet)
+        game = Blackjack(interaction.guild_id, interaction.user.id, bet, interaction.user)
         safeToStart= await game.start_game()
 
         if not safeToStart:
