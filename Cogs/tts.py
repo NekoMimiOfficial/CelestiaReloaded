@@ -27,7 +27,7 @@ class TTSCog(commands.Cog):
     @app_commands.describe(text= "the text to be TTS-ed")
     async def com_tts(self, interaction: discord.Interaction, text:str):
         file= str(interaction.user.id)+ "-tts.mp3"
-        response = client.models.generate_content(
+        response = self.client.models.generate_content(
            model="gemini-3.1-flash-tts-preview",
            contents=f"Say cheerfully: {text}",
            config=types.GenerateContentConfig(
