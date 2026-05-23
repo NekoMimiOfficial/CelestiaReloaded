@@ -9,6 +9,7 @@ import wave
 import os
 
 from NekoMimi import reg
+import asyncio
 
 def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
    with wave.open(filename, "wb") as wf:
@@ -54,6 +55,7 @@ class TTSCog(commands.Cog):
         vc= interaction.user.voice.channel
         player= await vc.connect()
         player.play(discord.FFmpegPCMAudio(source= file))
+        await asyncio.sleep(2)
         os.remove(file)
 
 ##############################################
