@@ -5,3 +5,4 @@ jishaku
 NekoMimi
 aiosqlite
 httpx
+pyttsx3
