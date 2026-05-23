@@ -53,7 +53,7 @@ class TTSCog(commands.Cog):
 
         vc= interaction.user.voice.channel
         player= await vc.connect()
-        player.play(discord.FFmpegPCMAudio(source= file, options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'))
+        player.play(discord.FFmpegPCMAudio(source= file))
         os.remove(file)
 
 ##############################################
