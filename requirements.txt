@@ -5,4 +5,5 @@ jishaku
 NekoMimi
 aiosqlite
 httpx
-google-genai
+davey
+pylast
