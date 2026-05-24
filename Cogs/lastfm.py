@@ -6,7 +6,6 @@ import pylast
 import aiosqlite
 import aiohttp
 import hashlib
-import os
 
 from NekoMimi import reg
 

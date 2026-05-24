@@ -12,10 +12,11 @@ following her big impact on my life it was only appropriate to revive her and ma
 > If you get any issues regarding connecting to voice channels then install the latest discord.py version straight from github  
 - add bot key:  
 `python3 -m NekoMimi`  
-`nreg w celestia BOT_TOKEN`  
-- add nekoir key:  
+`reg w celestia BOT_TOKEN`  
+- add other api keys:  
 `python3 -m NekoMimi`  
-`nreg w nekoir API_URL`  
+`reg w lfm_key LASTFM_API_KEY`  
+`reg w lfm_sec LASTFM_API_SECRET`  
 - run main:  
 `python3 main.py`  
 
