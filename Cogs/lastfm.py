@@ -118,7 +118,7 @@ class ConfirmAuthView(discord.ui.View):
             )
         )
 
-    @discord.ui.button(label="i've authorized it! ✅", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="i've authorized it!", style=discord.ButtonStyle.green)
     async def nyaa_confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.discord_id:
             await interaction.response.send_message(
@@ -204,10 +204,11 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         network = build_purrfect_network(row["session_key"])
         lfm_user = network.get_user(row["lastfm_username"])
         track = lfm_user.get_now_playing()
+        playcount = lfm_user.get_playcount()
 
         if not track:
             await interaction.followup.send(
-                f"**{row['lastfm_username']}** isn't playing anything rn... 😴"
+                f"**{row['lastfm_username']}** isn't playing anything rn..."
             )
             return
 
@@ -220,13 +221,14 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         embed = discord.Embed(
             title=f"🎵 {title}",
             description=f"by **{artist}**" + (f"\n*{album}*" if album else ""),
-            color=0xD51007,
+            color=0xEE90AC,
         )
         embed.set_thumbnail(url=cover)
         embed.set_author(
             name=f"{row['lastfm_username']} is listening~",
             icon_url=target.display_avatar.url,
         )
+        embed.set_footer(text= f"{str(playcount)} total scrobbles~")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="recent", description="ur recent scrobbles nya~")
@@ -262,7 +264,7 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         embed = discord.Embed(
             title=f"🎵 recent scrobbles for {row['lastfm_username']}~",
             description="\n".join(lines),
-            color=0xD51007,
+            color=0xEE90AC,
         )
         embed.set_author(name=target.display_name, icon_url=target.display_avatar.url)
         await interaction.followup.send(embed=embed)
@@ -302,7 +304,7 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         embed = discord.Embed(
             title=f"🎤 top artists for {row['lastfm_username']} ({period})~",
             description="\n".join(lines),
-            color=0xD51007,
+            color=0xEE90AC,
         )
         embed.set_author(name=target.display_name, icon_url=target.display_avatar.url)
         await interaction.followup.send(embed=embed)
@@ -342,7 +344,7 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         embed = discord.Embed(
             title=f"🎵 top tracks for {row['lastfm_username']} ({period})~",
             description="\n".join(lines),
-            color=0xD51007,
+            color=0xEE90AC,
         )
         embed.set_author(name=target.display_name, icon_url=target.display_avatar.url)
         await interaction.followup.send(embed=embed)
@@ -371,7 +373,7 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         embed = discord.Embed(
             title=f"🎧 {row['lastfm_username']}'s last.fm~",
             url=url,
-            color=0xD51007,
+            color=0xEE90AC,
         )
         embed.add_field(name="scrobbles nya~", value=f"{int(playcount):,}", inline=True)
         embed.add_field(name="member since~", value=f"<t:{int(registered)}:D>", inline=True)
