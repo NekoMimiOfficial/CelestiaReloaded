@@ -43,11 +43,14 @@ async def fetch_kitty_token() -> str:
     params = {
         "method": "auth.getToken",
         "api_key": LASTFM_API_KEY,
-        "format": "json",
     }
+    params["api_sig"] = sign_paw_print(params)
+    params["format"] = "json"
     async with aiohttp.ClientSession() as session:
         async with session.get(LASTFM_API_ROOT, params=params) as resp:
             data = await resp.json()
+            if "error" in data:
+                raise ValueError(data.get("message", "couldn't get token from last.fm 😿"))
             return data["token"]
 
 
@@ -130,13 +133,14 @@ class ConfirmAuthView(discord.ui.View):
             self.stop()
             for child in self.children:
                 child.disabled = True
-            await interaction.edit_original_response(
+            await interaction.message.edit(
                 content=f"nyaa~ linked **{username}** successfully! 🐾",
                 view=self,
             )
         except ValueError as e:
             await interaction.followup.send(
-                f"mrrrow... {e} — did u actually authorize it? 😿", ephemeral=True
+                f"mrrrow... last.fm said: `{e}`\nmake sure u actually clicked authorize on the last.fm page nya~ 😿",
+                ephemeral=True,
             )
 
     @discord.ui.button(label="cancel ✗", style=discord.ButtonStyle.red)
