@@ -12,7 +12,7 @@ from NekoMimi import reg
 
 DB_PATH = "celestia_lfm.db"
 LASTFM_API_KEY = reg.readCell("lfm_key")
-LASTFM_API_SECRET = os.getenv("LASTFM_API_SECRET")
+LASTFM_API_SECRET = reg.readCell("lfm_sec")
 LASTFM_API_ROOT = "https://ws.audioscrobbler.com/2.0/"
 
 PERIOD_MAP = {
