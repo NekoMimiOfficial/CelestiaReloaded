@@ -160,7 +160,7 @@ class ConfirmAuthView(discord.ui.View):
             child.disabled = True
 
 
-class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integration nya~ 🎵"):
+class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integration nya~"):
 
     @app_commands.command(name="login", description="nyaa~ link ur last.fm account!")
     async def paw_at_login(self, interaction: discord.Interaction):
@@ -219,7 +219,7 @@ class LastFMGroup(app_commands.Group, name="lastfm", description="last.fm integr
         cover = track.get_cover_image() or discord.Embed.Empty
 
         embed = discord.Embed(
-            title=f"🎵 {title}",
+            title=f"{title}",
             description=f"by **{artist}**" + (f"\n*{album}*" if album else ""),
             color=0xEE90AC,
         )
