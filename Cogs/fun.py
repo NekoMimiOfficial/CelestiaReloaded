@@ -110,8 +110,9 @@ class Fun_Commands(commands.Cog):
         r = random.randint(1, 100)
         hot = r / 1.17
 
-        if user.id == 770344920510103573:
-            hot= 1000
+        if user.id in [770344920510103573, 634922831360163860, 1350216002742390876]:
+            await interaction.response.send_message(f"**{user.name}** is **1000%** cute >.<")
+            return
 
         emoji = "💔"
         if hot > 25:
